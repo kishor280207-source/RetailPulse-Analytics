@@ -18,10 +18,11 @@ def login(
 ):
 
     user = authenticate_user(
-        db,
-        request.email,
-        request.password
-    )
+    db,
+    login_request.email,
+    login_request.password
+)
+    
 
     if not user:
         raise HTTPException(
@@ -30,12 +31,12 @@ def login(
         )
 
     access_token = create_access_token(
-        {
-            "sub": user.email,
-            "role": user.role
-        }
-    )
-
+    {
+        "sub": user.email,
+        "role": user.role,
+        "company_id": user.company_id
+    }
+)
     refresh_token = create_refresh_token(
         {
             "sub": user.email

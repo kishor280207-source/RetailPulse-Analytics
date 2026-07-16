@@ -20,6 +20,10 @@ def create_company(db: Session, data):
     db.commit()
     db.refresh(company)
 
+    print("Password:", data.password)
+    print("Type:", type(data.password))
+    print("Length:", len(data.password))
+
     admin = User(
         company_id=company.id,
         name=data.owner_name,
