@@ -8,13 +8,17 @@ from app.models.user import User
 from app.api.admin import router as admin_router
 from app.api.company import router as company_router
 from app.api.audit import router as audit_router
-from app.api import profile
 from app.models.category import Category
 from app.models.product import Product
 from app.models.refresh_token import RefreshToken
 from app.api.category import router as category_router
 from app.api.product import router as product_router
 from app.api.dashboard import router as dashboard_router
+from app.models.sales import Sale
+from app.models.sale_item import SaleItem
+from app.api.sales import router as sales_router
+from app.models.notification import Notification
+from app.api.notification import router as notification_router
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -66,6 +70,16 @@ app.include_router(
     dashboard_router,
     prefix="/dashboard",
     tags=["Dashboard"]
+)
+app.include_router(
+    sales_router,
+    prefix="/sales",
+    tags=["Sales"]
+)
+app.include_router(
+    notification_router,
+    prefix="/notifications",
+    tags=["Notifications"]
 )
 @app.get("/")
 def root():

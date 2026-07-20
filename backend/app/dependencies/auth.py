@@ -1,8 +1,7 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
 
-from app.core.config import SECRET_KEY, ALGORITHM
+from app.utils.jwt import verify_token
 
 security = HTTPBearer()
 
@@ -10,22 +9,14 @@ security = HTTPBearer()
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
-
     token = credentials.credentials
 
-    try:
+    payload = verify_token(token)
 
-        payload = jwt.decode(
-            token,
-            SECRET_KEY,
-            algorithms=[ALGORITHM]
-        )
-
-        return payload
-
-    except JWTError:
-
+    if payload is None:
         raise HTTPException(
             status_code=401,
-            detail="Invalid or Expired Token"
+            detail="Invalid or expired token"
         )
+
+    return payload

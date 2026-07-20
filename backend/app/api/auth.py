@@ -33,6 +33,7 @@ def login(
     access_token = create_access_token(
     {
         "sub": user.email,
+        "user_id": user.id,
         "role": user.role,
         "company_id": user.company_id
     }
