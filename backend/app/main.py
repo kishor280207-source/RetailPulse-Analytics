@@ -19,6 +19,12 @@ from app.models.sale_item import SaleItem
 from app.api.sales import router as sales_router
 from app.models.notification import Notification
 from app.api.notification import router as notification_router
+from app.models.inventory import Inventory
+from app.models.inventory_movement import InventoryMovement
+from app.api.inventory import router as inventory_router
+from app.api.inventory_movement import router as inventory_movement_router
+from fastapi.middleware.cors import CORSMiddleware
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -80,6 +86,20 @@ app.include_router(
     notification_router,
     prefix="/notifications",
     tags=["Notifications"]
+)
+app.include_router(
+    inventory_router
+)
+app.include_router(
+    inventory_movement_router
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 @app.get("/")
 def root():

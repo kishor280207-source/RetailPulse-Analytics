@@ -33,9 +33,18 @@ export default function Login() {
     alert("Login Successful");
 
     navigate("/dashboard");
-  } catch (error) {
-    alert("Invalid Email or Password");
   }
+  catch (error: any) {
+  console.log("Full Error:", error);
+  console.log("Response:", error.response);
+  console.log("Data:", error.response?.data);
+
+  if (error.response) {
+    alert(JSON.stringify(error.response.data));
+  } else {
+    alert(error.message);
+  }
+}
 };
   return (
     <Box
@@ -59,12 +68,13 @@ export default function Login() {
           </Typography>
 
           <Typography
-            align="center"
-            color="text.secondary"
-            mb={3}
+             align="center"
+             color="text.secondary"
+             component="p"
+             sx={{ mb: 3 }}
           >
-            Analytics Login
-          </Typography>
+             Analytics Login
+            </Typography>
 
           <form onSubmit={handleSubmit(onSubmit)}>
 

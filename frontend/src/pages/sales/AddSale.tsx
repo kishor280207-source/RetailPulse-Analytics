@@ -1,5 +1,6 @@
 import SalesForm from "../../components/sales/SalesForm";
 import { useNavigate } from "react-router-dom";
+
 const AddSale = () => {
     const navigate = useNavigate();
     
