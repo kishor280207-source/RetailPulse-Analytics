@@ -24,7 +24,12 @@ from app.models.inventory_movement import InventoryMovement
 from app.api.inventory import router as inventory_router
 from app.api.inventory_movement import router as inventory_movement_router
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.models.customer import Customer
+from app.models.customer_purchase_summary import CustomerPurchaseSummary
+from app.api.customer import router as customer_router
+from app.models.demand_forecast import DemandForecast
+from app.models.forecast_history import ForecastHistory
+from app.api.demand_forecast import router as demand_forecast_router
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -92,6 +97,16 @@ app.include_router(
 )
 app.include_router(
     inventory_movement_router
+)
+app.include_router(
+    customer_router,
+    prefix="/customer",
+    tags=["Customer"]
+)
+app.include_router(
+    demand_forecast_router,
+    prefix="/forecast",
+    tags=["Demand Forecast"]
 )
 
 app.add_middleware(

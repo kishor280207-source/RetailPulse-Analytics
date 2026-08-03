@@ -1,95 +1,121 @@
-import { useEffect, useState } from "react";
-import { Box, Grid, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 
-import DashboardCards from "../../components/dashboard/DashboardCards";
-import DashboardCharts from "../../components/dashboard/DashboardCharts";
-import NotificationPanel from "../../components/dashboard/NotificationPanel";
-import RecentSales from "../../components/dashboard/RecentSales";
-import { getDashboardSummary,getRevenueTrend } from "../../api/dashboardApi";
-import type { DashboardSummary } from "../../types/dashboard";
-import Filters from "../../components/dashboard/Filters";
-import TopProducts from "../../components/dashboard/TopProducts";
-import InventoryAnalytics from "../../components/dashboard/InventoryAnalytics";
-import ExportButtons from "../../components/dashboard/ExportButtons";
-import InventoryChart from "../../components/dashboard/InventoryChart";
-import { getInventoryCategory } from "../../api/dashboardApi";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import InventoryIcon from "@mui/icons-material/Inventory2";
+import PeopleIcon from "@mui/icons-material/People";
+
+import SummaryCard from "../../components/dashboard/SummaryCard";
 import RevenueChart from "../../components/dashboard/RevenueChart";
+import SalesChart from "../../components/dashboard/SalesChart";
+import RecentSales from "../../components/dashboard/RecentSales";
+import TopProducts from "../../components/dashboard/TopProducts";
+import WelcomeBanner from "../../components/dashboard/WelcomeBanner";
+import { Stack, Button } from "@mui/material";
+
 export default function Dashboard() {
 
-    const [summary, setSummary] =
-        useState<DashboardSummary>({
-            total_revenue: 0,
-            total_orders: 0,
-            total_products_sold: 0,
-            average_order_value: 0,
-            inventory_value: 0,
-            low_stock_products: 0,
-            out_of_stock_products: 0,
-            total_categories: 0,
-            total_products: 0
-        });
-        const [inventoryData, setInventoryData] = useState<any[]>([]);
-        const [revenueData, setRevenueData] = useState<any[]>([]);
-        
+  return (
 
-    useEffect(() => {
+    <>
+      <WelcomeBanner />
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        mb={4}
+      >
+        Dashboard
+      </Typography>
 
-        loadDashboard();
+      <Grid container spacing={3}>
 
-    }, []);
+        <Grid item xs={12} sm={6} lg={3}>
+          <SummaryCard
+            title="Revenue"
+            value="₹12,45,000"
+            color="#1976d2"
+            icon={<AttachMoneyIcon />}
+          />
+        </Grid>
 
-    const loadDashboard = async () => {
+        <Grid item xs={12} sm={6} lg={3}>
+          <SummaryCard
+            title="Orders"
+            value="1,245"
+            color="#4caf50"
+            icon={<ShoppingCartIcon />}
+          />
+        </Grid>
 
-        try {
+        <Grid item xs={12} sm={6} lg={3}>
+          <SummaryCard
+            title="Products"
+            value="325"
+            color="#ff9800"
+            icon={<InventoryIcon />}
+          />
+        </Grid>
 
-            const response =
-                await getDashboardSummary();
+       <Grid item xs={12} sm={6} lg={3}>
+          <SummaryCard
+            title="Customers"
+            value="856"
+            color="#9c27b0"
+            icon={<PeopleIcon />}
+          />
+        </Grid>
 
-            setSummary(response.data);
+      </Grid>
+      <Grid container spacing={3} sx={{ mt: 2 }}>
 
-            const revenueResponse = await getRevenueTrend();
-            setRevenueData(revenueResponse.data);
+      <Grid item xs={12} md={8}>
+        <RevenueChart />
+      </Grid>
 
-            const inventoryResponse = await getInventoryCategory();
-            setInventoryData(inventoryResponse.data);
+      <Grid item xs={12} md={4}>
+        <SalesChart />
+      </Grid>
 
-        } catch (error) {
+    </Grid>
+    <Grid container spacing={3} sx={{ mt: 2 }}>
 
-            console.error(error);
+    <Grid item xs={12} md={8}>
+     <RecentSales />
+    </Grid>
 
-        }
+    <Grid item xs={12} md={4}>
+     <TopProducts />
+    </Grid>
 
-    };
+   </Grid>
+   <Stack
+    direction="row"
+    spacing={2}
+    mt={4}
+    mb={4}
+>
 
-    return (
-        
+       <Button variant="contained">
+        Add Product
+       </Button>
 
-        <Box p={4}>
+      <Button variant="contained">
+      Add Sale
+     </Button>
 
-            <Typography
-                variant="h4"
-                mb={3}
-            >
-                Retail Analytics Dashboard
-            </Typography>
+     <Button variant="contained">
+     Add Customer
+    </Button>
 
-           <DashboardCards
-               totalSales={summary.total_orders}
-               revenue={summary.total_revenue}
-               products={summary.total_products}
-               lowStock={summary.low_stock_products}
-            />
-            <RecentSales />
-            <NotificationPanel />
-            <TopProducts />
-            <InventoryAnalytics />
-            <ExportButtons />
-            <RevenueChart data={revenueData} />
-            <InventoryChart data={inventoryData} />
+     <Button variant="outlined">
+      Export Report
+    </Button>
 
+</Stack>
+  
 
-        </Box>
+    </>
 
-    );
-
+  );
 }

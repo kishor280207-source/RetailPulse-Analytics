@@ -1,44 +1,58 @@
 import {
+  Card,
+  CardContent,
+  Typography,
+} from "@mui/material";
+
+import {
   LineChart,
   Line,
   XAxis,
   YAxis,
-  Tooltip,
   CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
 } from "recharts";
 
-import { Paper, Typography } from "@mui/material";
+const data = [
+  { month: "Jan", revenue: 15000 },
+  { month: "Feb", revenue: 22000 },
+  { month: "Mar", revenue: 18000 },
+  { month: "Apr", revenue: 35000 },
+  { month: "May", revenue: 42000 },
+  { month: "Jun", revenue: 51000 },
+];
 
-interface Props {
-  data: any[];
-}
-
-export default function RevenueChart({ data }: Props) {
+export default function RevenueChart() {
   return (
-    <Paper sx={{ p: 3, mt: 4 }}>
-      <Typography variant="h6" mb={2}>
-        Revenue Trend
-      </Typography>
+    <Card sx={{ borderRadius: 3 }}>
+      <CardContent>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
+        <Typography variant="h6" mb={2}>
+          Revenue Trend
+        </Typography>
 
-          <XAxis dataKey="date" />
+        <ResponsiveContainer width="100%" height={420}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
 
-          <YAxis />
+            <XAxis dataKey="month" />
 
-          <Tooltip />
+            <YAxis />
 
-          <Line
-            type="monotone"
-            dataKey="revenue"
-            stroke="#1976d2"
-            strokeWidth={3}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </Paper>
+            <Tooltip />
+
+            <Line
+              type="monotone"
+              dataKey="revenue"
+              stroke="#1976d2"
+              strokeWidth={3}
+            />
+
+          </LineChart>
+        </ResponsiveContainer>
+
+      </CardContent>
+    </Card>
   );
 }

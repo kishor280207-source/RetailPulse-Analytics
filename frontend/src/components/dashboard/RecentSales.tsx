@@ -1,79 +1,91 @@
 import {
-    Paper,
-    Typography,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Chip,
 } from "@mui/material";
 
+const sales = [
+  {
+    invoice: "INV001",
+    customer: "Rahul Kumar",
+    amount: "₹5,200",
+    status: "Paid",
+  },
+  {
+    invoice: "INV002",
+    customer: "Arun Kumar",
+    amount: "₹2,100",
+    status: "Pending",
+  },
+  {
+    invoice: "INV003",
+    customer: "Suresh",
+    amount: "₹8,700",
+    status: "Paid",
+  },
+];
+
 export default function RecentSales() {
+  return (
+    <Card
+       sx={{
+        borderRadius: 4,
+        height: 420,
+        }}
+    >
+      <CardContent>
 
-    const sales = [
-        {
-            invoice: "INV001",
-            customer: "Rahul",
-            amount: 1200
-        },
-        {
-            invoice: "INV002",
-            customer: "Kumar",
-            amount: 3500
-        },
-        {
-            invoice: "INV003",
-            customer: "Priya",
-            amount: 2700
-        }
-    ];
+        <Typography variant="h6" mb={2}>
+          Recent Sales
+        </Typography>
 
-    return (
+        <Table size="small">
 
-        <Paper sx={{ p: 3, mt: 4 }}>
+          <TableHead>
 
-            <Typography variant="h6" mb={2}>
-                Recent Sales
-            </Typography>
+            <TableRow>
+              <TableCell><b>Invoice</b></TableCell>
+              <TableCell><b>Customer</b></TableCell>
+              <TableCell><b>Amount</b></TableCell>
+              <TableCell><b>Status</b></TableCell>
+            </TableRow>
 
-            <Table>
+          </TableHead>
 
-                <TableHead>
+          <TableBody>
 
-                    <TableRow>
+            {sales.map((sale) => (
+              <TableRow key={sale.invoice}>
+                <TableCell>{sale.invoice}</TableCell>
+                <TableCell>{sale.customer}</TableCell>
+                <TableCell>{sale.amount}</TableCell>
 
-                        <TableCell>Invoice</TableCell>
+                <TableCell>
+                  <Chip
+                    label={sale.status}
+                    color={
+                      sale.status === "Paid"
+                        ? "success"
+                        : "warning"
+                    }
+                    size="small"
+                  />
+                </TableCell>
 
-                        <TableCell>Customer</TableCell>
+              </TableRow>
+            ))}
 
-                        <TableCell>Amount</TableCell>
+          </TableBody>
 
-                    </TableRow>
+        </Table>
 
-                </TableHead>
-
-                <TableBody>
-
-                    {sales.map((sale) => (
-
-                        <TableRow key={sale.invoice}>
-
-                            <TableCell>{sale.invoice}</TableCell>
-
-                            <TableCell>{sale.customer}</TableCell>
-
-                            <TableCell>₹ {sale.amount}</TableCell>
-
-                        </TableRow>
-
-                    ))}
-
-                </TableBody>
-
-            </Table>
-
-        </Paper>
-
-    );
-
+      </CardContent>
+    </Card>
+  );
 }

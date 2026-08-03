@@ -6,70 +6,116 @@ import Products from "../pages/Products/Products";
 import Categories from "../pages/Categories/Categories";
 import Profile from "../pages/Profile/Profile";
 
-import SalesList from "../pages/sales/SalesList";
+import SalesList from "../pages/sales/salesList";
 import AddSale from "../pages/sales/AddSale";
 
 import InventoryList from "../pages/inventory/InventoryList";
 import InventoryMovement from "../pages/inventory/InventoryMovement";
 
-import MainLayout from "../layouts/MainLayout";
+import MainLayout from "../components/layout/MainLayout";
+
+// Customer Module
+import CustomersPage from "../pages/Customers/CustomersPage";
+import AddCustomerPage from "../pages/Customers/AddCustomerPage";
+import CustomerEditPage from "../pages/Customers/CustomerEditPage";
+import CustomerProfilePage from "../pages/Customers/CustomerProfilePage";
+import CustomerAnalyticsPage from "../pages/Customers/CustomerAnalyticsPage";
+import ForecastPage from "../pages/Forecast/ForecastPage";
 
 export default function AppRoutes() {
-  return (
-    <BrowserRouter>
+    return (
+        <BrowserRouter>
 
-      <Routes>
+            <Routes>
 
-        {/* Login Page */}
-        <Route path="/" element={<Login />} />
+                {/* Login */}
+                <Route
+                    path="/"
+                    element={<Login />}
+                />
 
-        {/* Protected Pages */}
-        <Route element={<MainLayout />}>
+                {/* Protected Pages */}
+                <Route element={<MainLayout />}>
 
-          <Route
-            path="/dashboard"
-            element={<Dashboard />}
-          />
+                    {/* Dashboard */}
+                    <Route
+                        path="/dashboard"
+                        element={<Dashboard />}
+                    />
 
-          <Route
-            path="/products"
-            element={<Products />}
-          />
+                    {/* Products */}
+                    <Route
+                        path="/products"
+                        element={<Products />}
+                    />
 
-          <Route
-            path="/categories"
-            element={<Categories />}
-          />
+                    {/* Categories */}
+                    <Route
+                        path="/categories"
+                        element={<Categories />}
+                    />
+                    <Route
+                        path="/forecast"
+                         element={<ForecastPage />}
+                    />
+                    {/* Profile */}
+                    <Route
+                        path="/profile"
+                        element={<Profile />}
+                    />
 
-          <Route
-            path="/profile"
-            element={<Profile />}
-          />
+                    {/* Sales */}
+                    <Route
+                        path="/sales"
+                        element={<SalesList />}
+                    />
 
-          <Route
-            path="/sales"
-            element={<SalesList />}
-          />
+                    <Route
+                        path="/sales/add"
+                        element={<AddSale />}
+                    />
 
-          <Route
-            path="/sales/add"
-            element={<AddSale />}
-          />
+                    {/* Inventory */}
+                    <Route
+                        path="/inventory"
+                        element={<InventoryList />}
+                    />
 
-          <Route
-            path="/inventory"
-            element={<InventoryList />}
-          />
+                    <Route
+                        path="/inventory-movements"
+                        element={<InventoryMovement />}
+                    />
 
-          <Route
-            path="/inventory-movements"
-            element={<InventoryMovement />}
-          />
+                    {/* Customer Management */}
+                    <Route
+                        path="/customers"
+                        element={<CustomersPage />}
+                    />
 
-        </Route>
+                    <Route
+                        path="/customers/add"
+                        element={<AddCustomerPage />}
+                    />
 
-      </Routes>
+                    <Route
+                        path="/customers/edit/:id"
+                        element={<CustomerEditPage />}
+                    />
 
-    </BrowserRouter>
-  );
+                    <Route
+                        path="/customers/profile/:id"
+                        element={<CustomerProfilePage />}
+                    />
+
+                    <Route
+                        path="/customers/analytics"
+                        element={<CustomerAnalyticsPage />}
+                    />
+
+                </Route>
+
+            </Routes>
+
+        </BrowserRouter>
+    );
 }

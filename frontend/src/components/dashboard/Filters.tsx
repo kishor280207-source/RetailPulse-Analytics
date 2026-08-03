@@ -1,105 +1,125 @@
+import { useState } from "react";
 import {
-    Paper,
     Grid,
     TextField,
+    Button,
     MenuItem,
-    Button
+    Typography,
+    Box
 } from "@mui/material";
 
-export default function Filters() {
+interface Props {
+    onApply: (filters: any) => void;
+}
+
+export default function Filters({ onApply }: Props) {
+    const [filters, setFilters] = useState({
+        start_date: "",
+        end_date: "",
+        payment_method: ""
+    });
+
+    const fieldSx = {
+        "& .MuiOutlinedInput-root": {
+            color: "#fff",
+            "& fieldset": {
+                borderColor: "#fff",
+            },
+            "&:hover fieldset": {
+                borderColor: "#fff",
+            },
+            "&.Mui-focused fieldset": {
+                borderColor: "#fff",
+            },
+        },
+        "& input": {
+            color: "#fff",
+            WebkitTextFillColor: "#fff",
+        },
+        "& svg": {
+            color: "#fff",
+        },
+        "& .MuiInputLabel-root": {
+            color: "#fff",
+        },
+        "& .MuiSelect-icon": {
+            color: "#fff",
+        },
+    };
 
     return (
-
-        <Paper sx={{ p: 3, mb: 4 }}>
-
-            <Grid container spacing={2}>
-
-                <Grid item xs={12} md={2}>
+        <Box sx={{ mb: 3 }}>
+            <Grid container spacing={2} alignItems="flex-end">
+                <Grid item xs={12} md={3}>
+                    <Typography sx={{ color: "#fff", mb: 1 }}>
+                        Start Date
+                    </Typography>
                     <TextField
                         fullWidth
                         type="date"
-                        label="From"
-                        InputLabelProps={{
-                            shrink: true
-                        }}
+                        value={filters.start_date}
+                        onChange={(e) =>
+                            setFilters({
+                                ...filters,
+                                start_date: e.target.value
+                            })
+                        }
+                        sx={fieldSx}
                     />
                 </Grid>
 
-                <Grid item xs={12} md={2}>
+                <Grid item xs={12} md={3}>
+                    <Typography sx={{ color: "#fff", mb: 1 }}>
+                        End Date
+                    </Typography>
                     <TextField
                         fullWidth
                         type="date"
-                        label="To"
-                        InputLabelProps={{
-                            shrink: true
-                        }}
+                        value={filters.end_date}
+                        onChange={(e) =>
+                            setFilters({
+                                ...filters,
+                                end_date: e.target.value
+                            })
+                        }
+                        sx={fieldSx}
                     />
                 </Grid>
 
-                <Grid item xs={12} md={2}>
+                <Grid item xs={12} md={3}>
+                    <Typography sx={{ color: "#fff", mb: 1 }}>
+                        Payment
+                    </Typography>
                     <TextField
-                        select
                         fullWidth
-                        label="Category"
+                        select
+                        value={filters.payment_method}
+                        onChange={(e) =>
+                            setFilters({
+                                ...filters,
+                                payment_method: e.target.value
+                            })
+                        }
+                        sx={fieldSx}
                     >
-                        <MenuItem value="">
-                            All
-                        </MenuItem>
-                        <MenuItem value="Electronics">
-                            Electronics
-                        </MenuItem>
-                        <MenuItem value="Grocery">
-                            Grocery
-                        </MenuItem>
+                        <MenuItem value="">All</MenuItem>
+                        <MenuItem value="Cash">Cash</MenuItem>
+                        <MenuItem value="Card">Card</MenuItem>
+                        <MenuItem value="UPI">UPI</MenuItem>
                     </TextField>
                 </Grid>
 
-                <Grid item xs={12} md={2}>
-                    <TextField
-                        select
-                        fullWidth
-                        label="Payment"
-                    >
-                        <MenuItem value="">
-                            All
-                        </MenuItem>
-                        <MenuItem value="Cash">
-                            Cash
-                        </MenuItem>
-                        <MenuItem value="Card">
-                            Card
-                        </MenuItem>
-                        <MenuItem value="UPI">
-                            UPI
-                        </MenuItem>
-                    </TextField>
-                </Grid>
-
-                <Grid item xs={12} md={2}>
+                <Grid item xs={12} md={3}>
                     <Button
                         fullWidth
                         variant="contained"
-                        sx={{ height: 56 }}
+                        sx={{ height: "56px" }}
+                        onClick={() => onApply(filters)}
                     >
-                        Apply
+                        Apply Filters
                     </Button>
                 </Grid>
-
-                <Grid item xs={12} md={2}>
-                    <Button
-                        fullWidth
-                        color="secondary"
-                        variant="outlined"
-                        sx={{ height: 56 }}
-                    >
-                        Refresh
-                    </Button>
-                </Grid>
-
             </Grid>
-
-        </Paper>
-
+        </Box>
     );
-
 }

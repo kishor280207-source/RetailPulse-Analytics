@@ -8,13 +8,31 @@ from app.models.category import Category
 from app.models.inventory import Inventory
 
 
-def get_dashboard_summary(db: Session):
+def get_dashboard_summary(db: Session,
+    start_date=None,
+    end_date=None,
+    payment_method=None,
+    category=None):
+    query = db.query(Sale)
 
-    total_revenue = (
-        db.query(func.sum(Sale.total_amount)).scalar() or 0
+    if start_date:
+       query = query.filter(
+        Sale.sale_date >= start_date)
+
+    if end_date:
+       query = query.filter(
+        Sale.sale_date <= end_date
     )
 
-    total_orders = db.query(Sale).count()
+    if payment_method:
+      query = query.filter(
+        Sale.payment_method == payment_method
+    )
+
+    total_revenue = (query.with_entities(func.sum(Sale.total_amount)).scalar() or 0
+)
+
+    total_orders = query.count()
 
     total_products_sold = (
         db.query(func.sum(SaleItem.quantity)).scalar() or 0
@@ -28,7 +46,7 @@ def get_dashboard_summary(db: Session):
     inventory_value = (
         db.query(
             func.sum(
-                Inventory.available_stock * Product.selling_price
+                Inventory.available_stock * Product.unit_price
             )
         )
         .join(Product, Product.id == Inventory.product_id)
@@ -140,6 +158,126 @@ def get_inventory_category(db: Session):
         {
             "category": row.name,
             "stock": int(row.stock)
+        }
+        for row in data
+    ]
+from sqlalchemy import func
+
+def get_top_categories(db: Session):
+
+    data = (
+        db.query(
+            Category.name,
+            func.sum(SaleItem.quantity).label("sales")
+        )
+        .join(Product, Product.category_id == Category.id)
+        .join(SaleItem, SaleItem.product_id == Product.id)
+        .group_by(Category.name)
+        .order_by(func.sum(SaleItem.quantity).desc())
+        .limit(10)
+        .all()
+    )
+
+    return [
+        {
+            "category": row.name,
+            "sales": int(row.sales)
+        }
+        for row in data
+    ]
+def get_payment_method_sales(db: Session):
+
+    data = (
+        db.query(
+            Sale.payment_method,
+            func.sum(Sale.total_amount).label("amount")
+        )
+        .group_by(Sale.payment_method)
+        .all()
+    )
+
+    return [
+        {
+            "method": row.payment_method,
+            "amount": float(row.amount)
+        }
+        for row in data
+    ]
+def get_sales_channel(db: Session):
+
+    data = (
+        db.query(
+            Sale.sales_channel,
+            func.sum(Sale.total_amount).label("amount")
+        )
+        .group_by(Sale.sales_channel)
+        .all()
+    )
+
+    return [
+        {
+            "channel": row.sales_channel,
+            "amount": float(row.amount)
+        }
+        for row in data
+    ]
+def get_stock_status_summary(db: Session):
+
+    in_stock = (
+        db.query(Inventory)
+        .filter(Inventory.available_stock > Inventory.reorder_level)
+        .count()
+    )
+
+    low_stock = (
+        db.query(Inventory)
+        .filter(
+            Inventory.available_stock > 0,
+            Inventory.available_stock <= Inventory.reorder_level
+        )
+        .count()
+    )
+
+    out_of_stock = (
+        db.query(Inventory)
+        .filter(Inventory.available_stock == 0)
+        .count()
+    )
+
+    return [
+        {
+            "status": "In Stock",
+            "count": in_stock
+        },
+        {
+            "status": "Low Stock",
+            "count": low_stock
+        },
+        {
+            "status": "Out of Stock",
+            "count": out_of_stock
+        }
+    ]
+def get_inventory_value_category(db: Session):
+
+    data = (
+        db.query(
+            Category.name,
+            func.sum(
+               Inventory.available_stock * 
+             Product.unit_price
+            ).label("value")
+        )
+        .join(Product, Product.category_id == Category.id)
+        .join(Inventory, Inventory.product_id == Product.id)
+        .group_by(Category.name)
+        .all()
+    )
+
+    return [
+        {
+            "category": row.name,
+            "value": float(row.value or 0)
         }
         for row in data
     ]

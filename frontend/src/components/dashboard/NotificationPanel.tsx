@@ -32,20 +32,18 @@ export default function NotificationPanel() {
             </Typography>
 
             <List>
-
-                {notifications.map((item, index) => (
-
-                    <ListItem key={index}>
-
-                        <ListItemText
-                            primary={item}
-                        />
-
-                    </ListItem>
-
-                ))}
-
-            </List>
+    {notifications.length === 0 ? (
+        <ListItem>
+            <ListItemText primary="No notifications available" />
+        </ListItem>
+    ) : (
+        notifications.map((item, index) => (
+            <ListItem key={index}>
+                <ListItemText primary={item} />
+            </ListItem>
+        ))
+    )}
+</List>
 
         </Paper>
 
