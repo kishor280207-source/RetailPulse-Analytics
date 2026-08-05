@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getCustomerProfile } from "../../api/customerApi";
-
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Paper,
   Typography,
   Grid,
   Divider,
-  Chip
+  Chip,
+  Button
 } from "@mui/material";
 
 export default function CustomerProfilePage() {
 
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [profile, setProfile] = useState<any>(null);
 
@@ -30,7 +32,13 @@ export default function CustomerProfilePage() {
     }
   };
 
-  if (!profile) return <Typography p={4}>Loading...</Typography>;
+  if (!profile) {
+  return (
+    <Box p={4}>
+      <Typography>Loading Customer Profile...</Typography>
+    </Box>
+  );
+}
 
   return (
     <Box p={4}>
@@ -57,7 +65,25 @@ export default function CustomerProfilePage() {
             <Typography><b>Phone</b></Typography>
             <Typography>{profile.customer.phone}</Typography>
           </Grid>
+          <Grid item xs={6}>
+              <Typography><b>Address</b></Typography>
+             <Typography>{profile.customer.address}</Typography>
+          </Grid>
 
+         <Grid item xs={6}>
+           <Typography><b>City</b></Typography>
+          <Typography>{profile.customer.city}</Typography>
+          </Grid>
+
+            <Grid item xs={6}>
+             <Typography><b>State</b></Typography>
+             <Typography>{profile.customer.state}</Typography>
+            </Grid>
+
+          <Grid item xs={6}>
+             <Typography><b>Country</b></Typography>
+            <Typography>{profile.customer.country}</Typography>
+          </Grid>
           <Grid item xs={6}>
             <Typography><b>Customer Type</b></Typography>
             <Typography>{profile.customer.customer_type}</Typography>
@@ -75,6 +101,30 @@ export default function CustomerProfilePage() {
               }
             />
           </Grid>
+          <Grid item xs={6}>
+            <Typography><b>Customer Segment</b></Typography>
+
+             <Chip
+               label={
+                profile.summary?.total_orders <= 1
+                ? "New"
+                : profile.summary?.total_orders <= 5
+                ? "Regular"
+                : profile.summary?.total_orders <= 10
+                ? "Loyal"
+                : "VIP"
+               }
+              color={
+               profile.summary?.total_orders > 10
+              ? "warning"
+              : profile.summary?.total_orders > 5
+              ? "secondary"
+              : profile.summary?.total_orders > 1
+              ? "primary"
+              : "success"
+              }
+            />
+          </Grid>
 
         </Grid>
 
@@ -83,7 +133,7 @@ export default function CustomerProfilePage() {
         <Typography variant="h6" mb={2}>
           Purchase Summary
         </Typography>
-
+        
         <Grid container spacing={3}>
 
           <Grid item xs={4}>
@@ -107,7 +157,38 @@ export default function CustomerProfilePage() {
             </Typography>
           </Grid>
 
-        </Grid>
+          <Grid item xs={4}>
+           <Typography>Last Purchase</Typography>
+
+            <Typography variant="h6">
+              {profile.summary?.last_purchase_date ?? "No Purchases"}
+            </Typography>
+          </Grid>
+        </Grid>  
+          <Divider sx={{ my: 4 }} />
+
+         <Typography variant="h6" mb={2}>
+            Recent Purchases
+         </Typography>
+
+         <Paper variant="outlined" sx={{ p: 2 }}>
+           <Typography color="text.secondary">
+              Purchase history will be displayed here.
+           </Typography>
+       </Paper>
+
+
+        
+
+        <Button
+           variant="contained"
+           sx={{ mt: 4 }}
+           onClick={() =>
+           navigate(`/customers/purchase-history/${id}`)}
+
+       >
+          View Purchase History
+       </Button>
 
       </Paper>
 

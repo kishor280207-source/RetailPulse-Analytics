@@ -157,6 +157,12 @@ export default function AddCustomerPage() {
                 >
                   Save Customer
                 </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate("/customers/segments")}
+                  sx={{ ml: 2 }}>
+                 Customer Segments
+               </Button>
               </Grid>
 
             </Grid>

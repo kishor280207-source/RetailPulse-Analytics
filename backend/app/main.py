@@ -30,6 +30,9 @@ from app.api.customer import router as customer_router
 from app.models.demand_forecast import DemandForecast
 from app.models.forecast_history import ForecastHistory
 from app.api.demand_forecast import router as demand_forecast_router
+from app.api.forecast import router as forecast_router
+
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -103,10 +106,12 @@ app.include_router(
     prefix="/customer",
     tags=["Customer"]
 )
+
+
 app.include_router(
-    demand_forecast_router,
+    forecast_router,
     prefix="/forecast",
-    tags=["Demand Forecast"]
+    tags=["Forecast"]
 )
 
 app.add_middleware(

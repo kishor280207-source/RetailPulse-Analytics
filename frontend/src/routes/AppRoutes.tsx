@@ -21,6 +21,8 @@ import CustomerEditPage from "../pages/Customers/CustomerEditPage";
 import CustomerProfilePage from "../pages/Customers/CustomerProfilePage";
 import CustomerAnalyticsPage from "../pages/Customers/CustomerAnalyticsPage";
 import ForecastPage from "../pages/Forecast/ForecastPage";
+import CustomerPurchaseHistoryPage from "../pages/Customers/CustomerPurchaseHistoryPage";
+import CustomerSegmentsPage from "../pages/Customers/CustomerSegmentsPage";
 
 export default function AppRoutes() {
     return (
@@ -111,8 +113,14 @@ export default function AppRoutes() {
                         path="/customers/analytics"
                         element={<CustomerAnalyticsPage />}
                     />
+                    <Route
+                 path="/customers/purchase-history/:id"
+              element={<CustomerPurchaseHistoryPage />}
+                 />
 
                 </Route>
+                <Route path="/customers/segments"
+                 element={<CustomerSegmentsPage />}/>
 
             </Routes>
 

@@ -21,9 +21,6 @@ export const getCustomerProfile = (id: number) =>
 export const getCustomerAnalytics = () =>
   api.get("/customer/analytics/dashboard");
 
-export const getCustomerSegments = () =>
-  api.get("/customer/segments");
-
 export const searchCustomers = (
   search?: string,
   customer_type?: string,
@@ -36,3 +33,12 @@ export const searchCustomers = (
       status,
     },
   });
+export const getCustomerPurchaseHistory = (id: number) =>
+  api.get(`/customer/purchase-history/${id}`);
+
+export const exportCustomersCSV = () =>
+  api.get("/customer/export/csv", {
+    responseType: "blob",});
+
+export const getCustomerSegments = () =>
+  api.get("/customers/segments");    

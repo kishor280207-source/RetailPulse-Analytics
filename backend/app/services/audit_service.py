@@ -21,3 +21,4 @@ def create_audit_log(
 
     db.add(log)
     db.commit()
+    

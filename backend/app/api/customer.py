@@ -21,6 +21,9 @@ from app.schemas.customer import (
     CustomerCreate,
     CustomerUpdate
 )
+from fastapi.responses import StreamingResponse
+import io
+import csv
 
 router = APIRouter()
 
@@ -114,4 +117,45 @@ def remove_customer(
     return delete_customer(
         db,
         customer_id
+    )
+@router.get("/export/csv")
+def export_customers_csv(
+    db: Session = Depends(get_db)
+):
+
+    customers = get_all_customers(db)
+
+    output = io.StringIO()
+
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "ID",
+        "Name",
+        "Email",
+        "Phone",
+        "Type",
+        "Status"
+    ])
+
+    for customer in customers:
+
+        writer.writerow([
+            customer.customer_id,
+            customer.full_name,
+            customer.email,
+            customer.phone,
+            customer.customer_type,
+            customer.status
+        ])
+
+    output.seek(0)
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition":
+            "attachment; filename=customers.csv"
+        }
     )

@@ -10,7 +10,23 @@ from app.models.customer import Customer
 
 
 def create_customer(db: Session, data, company_id: int):
+    existing_email = (
+       db.query(Customer)
+       .filter(Customer.email == data.email)
+       .first()
+  )
 
+    if existing_email:
+     raise ValueError("Email already exists")
+
+    existing_phone = (
+    db.query(Customer)
+    .filter(Customer.phone == data.phone)
+    .first()
+)
+    if existing_phone:
+      raise ValueError("Phone number already exists")
+    
     customer = Customer(
         company_id=company_id,
         customer_id=f"CUST-{uuid4().hex[:8].upper()}",
@@ -57,6 +73,36 @@ def update_customer(db: Session, customer_id: int, data):
     if not customer:
         return None
 
+    # Check duplicate email
+    if data.email:
+
+        email = (
+            db.query(Customer)
+            .filter(
+                Customer.email == data.email,
+                Customer.id != customer_id
+            )
+            .first()
+        )
+
+        if email:
+            raise ValueError("Email already exists")
+
+    # Check duplicate phone
+    if data.phone:
+
+        phone = (
+            db.query(Customer)
+            .filter(
+                Customer.phone == data.phone,
+                Customer.id != customer_id
+            )
+            .first()
+        )
+
+        if phone:
+            raise ValueError("Phone number already exists")
+
     update_data = data.model_dump(exclude_unset=True)
 
     for key, value in update_data.items():
@@ -67,7 +113,6 @@ def update_customer(db: Session, customer_id: int, data):
 
     return customer
 
-
 def delete_customer(db: Session, customer_id: int):
 
     customer = get_customer_by_id(db, customer_id)
@@ -75,12 +120,16 @@ def delete_customer(db: Session, customer_id: int):
     if not customer:
         return None
 
-    db.delete(customer)
+    customer.status = "Inactive"
+
     db.commit()
 
+    db.refresh(customer)
+
     return {
-        "message": "Customer deleted successfully"
+        "message": "Customer deactivated successfully"
     }
+
 def get_customer_profile(db: Session, customer_id: int):
 
     customer = (
@@ -213,16 +262,16 @@ def get_customer_segments(db: Session):
     for summary in summaries:
 
         if summary.total_orders <= 1:
-            segment = "New Customer"
+            segment = "New"
 
         elif summary.total_orders <= 5:
-            segment = "Regular Customer"
+            segment = "Regular"
 
         elif summary.total_orders <= 10:
-            segment = "Loyal Customer"
+            segment = "Loyal"
 
         else:
-            segment = "VIP Customer"
+            segment = "VIP"
 
         customer = (
             db.query(Customer)

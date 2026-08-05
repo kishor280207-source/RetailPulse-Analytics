@@ -1,45 +1,43 @@
+import { useEffect, useState } from "react";
+
 import { Grid, Card, CardContent, Typography } from "@mui/material";
 
-const recommendations = [
-  {
-    title: "Reorder Soon",
-    value: "12 Products",
-    color: "#fb8c00",
-  },
-  {
-    title: "Immediate Restock",
-    value: "5 Products",
-    color: "#e53935",
-  },
-  {
-    title: "Healthy Stock",
-    value: "84 Products",
-    color: "#43a047",
-  },
-  {
-    title: "Overstock Risk",
-    value: "8 Products",
-    color: "#1e88e5",
-  },
-];
+import { getRecommendations } from "../../api/forecastApi";
 
 export default function InventoryRecommendation() {
+
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+
+  const loadRecommendations = async () => {
+    try {
+      const res = await getRecommendations();
+      setRecommendations(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    loadRecommendations();
+  }, []);
+
   return (
     <Grid container spacing={3} sx={{ mt: 2 }}>
-      {recommendations.map((item) => (
-        <Grid item xs={12} md={3} key={item.title}>
+      {recommendations.map((item, index) => (
+        <Grid item xs={12} md={3} key={index}>
           <Card
             sx={{
-              borderLeft: `6px solid ${item.color}`,
+              borderLeft: "6px solid #1976d2",
               borderRadius: 3,
             }}
           >
             <CardContent>
+
               <Typography
                 color="text.secondary"
                 fontWeight={600}
               >
-                {item.title}
+                {item.status}
               </Typography>
 
               <Typography
@@ -47,8 +45,9 @@ export default function InventoryRecommendation() {
                 fontWeight="bold"
                 mt={1}
               >
-                {item.value}
+                {item.product}
               </Typography>
+
             </CardContent>
           </Card>
         </Grid>
