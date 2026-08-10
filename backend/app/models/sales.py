@@ -21,6 +21,12 @@ class Sale(Base):
         unique=True
     )
 
+    customer_id = Column(
+        Integer,
+        ForeignKey("customers.id"),
+        nullable=False
+    )
+
     customer_name = Column(
         String,
         nullable=False
@@ -31,19 +37,40 @@ class Sale(Base):
         server_default=func.now()
     )
 
-    sales_channel = Column(
-        String,
-        nullable=False
-    )
 
     payment_method = Column(
         String,
         nullable=False
     )
 
+    notes = Column(
+    String,
+    nullable=True
+    )
+
+    subtotal = Column(
+        Float,
+        nullable=False
+    )
+
+    discount = Column(
+        Float,
+        default=0
+    )
+
+    tax = Column(
+        Float,
+        default=0
+    )
+
     total_amount = Column(
         Float,
         nullable=False
+    )
+
+    status = Column(
+        String,
+        default="Completed"
     )
 
     created_by = Column(

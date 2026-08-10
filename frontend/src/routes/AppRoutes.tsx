@@ -7,14 +7,11 @@ import Categories from "../pages/Categories/Categories";
 import Profile from "../pages/Profile/Profile";
 
 import SalesList from "../pages/sales/salesList";
+import CreateSale from "../pages/sales/CreateSale";
 import AddSale from "../pages/sales/AddSale";
-
 import InventoryList from "../pages/inventory/InventoryList";
 import InventoryMovement from "../pages/inventory/InventoryMovement";
-
 import MainLayout from "../components/layout/MainLayout";
-
-// Customer Module
 import CustomersPage from "../pages/Customers/CustomersPage";
 import AddCustomerPage from "../pages/Customers/AddCustomerPage";
 import CustomerEditPage from "../pages/Customers/CustomerEditPage";
@@ -30,28 +27,28 @@ export default function AppRoutes() {
 
             <Routes>
 
-                {/* Login */}
+                
                 <Route
                     path="/"
                     element={<Login />}
                 />
 
-                {/* Protected Pages */}
+            
                 <Route element={<MainLayout />}>
 
-                    {/* Dashboard */}
+                
                     <Route
                         path="/dashboard"
                         element={<Dashboard />}
                     />
 
-                    {/* Products */}
+        
                     <Route
                         path="/products"
                         element={<Products />}
                     />
 
-                    {/* Categories */}
+                    
                     <Route
                         path="/categories"
                         element={<Categories />}
@@ -60,13 +57,13 @@ export default function AppRoutes() {
                         path="/forecast"
                          element={<ForecastPage />}
                     />
-                    {/* Profile */}
+                
                     <Route
                         path="/profile"
                         element={<Profile />}
                     />
 
-                    {/* Sales */}
+                    
                     <Route
                         path="/sales"
                         element={<SalesList />}
@@ -77,7 +74,7 @@ export default function AppRoutes() {
                         element={<AddSale />}
                     />
 
-                    {/* Inventory */}
+                    
                     <Route
                         path="/inventory"
                         element={<InventoryList />}
@@ -88,7 +85,7 @@ export default function AppRoutes() {
                         element={<InventoryMovement />}
                     />
 
-                    {/* Customer Management */}
+                
                     <Route
                         path="/customers"
                         element={<CustomersPage />}
@@ -121,6 +118,13 @@ export default function AppRoutes() {
                 </Route>
                 <Route path="/customers/segments"
                  element={<CustomerSegmentsPage />}/>
+
+                <Route path="/sales" element={<SalesList />} />
+
+               <Route
+                path="/sales/create"
+                element={<CreateSale />}
+               />  
 
             </Routes>
 

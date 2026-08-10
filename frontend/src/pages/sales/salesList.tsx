@@ -6,8 +6,10 @@ import { getDashboardSummary } from "../../api/salesApi";
 import type { DashboardSummary } from "../../types/sales";
 import SalesTable from "../../components/sales/SalesTable";
 import SearchFilter from "../../components/sales/SearchFilter";
+import { useNavigate } from "react-router-dom";
 
 const SalesList = () => {
+    const navigate = useNavigate();
     const [sales, setSales] = useState<Sale[]>([]);
     const [summary, setSummary] = useState<DashboardSummary>({
         total_sales: 0,
@@ -53,7 +55,11 @@ const SalesList = () => {
         <div style={{ padding: "20px" }}>
             <h1>Sales Management</h1>
             <DashboardCards summary={summary} />
-            <button>Add Sale</button>
+            <button
+              onClick={() => navigate("/sales/create")}
+            >
+               Add Sale
+            </button>
             <SearchFilter onSearch={handleSearch} />
 
             <SalesTable sales={sales} />

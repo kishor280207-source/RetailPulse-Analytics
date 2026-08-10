@@ -73,7 +73,7 @@ def update_customer(db: Session, customer_id: int, data):
     if not customer:
         return None
 
-    # Check duplicate email
+    
     if data.email:
 
         email = (
@@ -88,7 +88,7 @@ def update_customer(db: Session, customer_id: int, data):
         if email:
             raise ValueError("Email already exists")
 
-    # Check duplicate phone
+    
     if data.phone:
 
         phone = (

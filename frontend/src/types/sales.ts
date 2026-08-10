@@ -9,14 +9,20 @@ export interface SaleItem {
 }
 
 export interface Sale {
-    id?: number;
-    invoice_number?: string;
-    customer_name: string;
-    sale_date?: string;
-    sales_channel: string;
-    payment_method: string;
-    total_amount?: number;
-    items: SaleItem[];
+  id?: number;
+  invoice_number?: string;
+  customer_id: number;
+  customer_name: string;
+  sale_date?: string;
+  payment_method: string;
+  notes?: string;
+  subtotal?: number;
+  discount?: number;
+  tax?: number;
+  total_amount?: number;
+  status?: string;
+  created_by?: number;
+  items?: SaleItem[];
 }
 
 export interface DashboardSummary {
