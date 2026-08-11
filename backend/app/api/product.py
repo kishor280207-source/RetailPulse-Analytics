@@ -10,16 +10,15 @@ from app.schemas.stock import StockUpdate
 from app.dependencies.current_user import get_current_user
 from app.dependencies.role import require_admin
 from app.services.audit_service import create_audit_log
+
 router = APIRouter()
+
 @router.post("/")
 def create_product(
     product: ProductCreate,
     current_user=Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-
-
-    # Check category exists
     category = db.query(Category).filter(
         Category.id == product.category_id
     ).first()
@@ -30,7 +29,6 @@ def create_product(
             detail="Category not found."
         )
 
-    # SKU validation
     existing_sku = db.query(Product).filter(
         Product.company_id == 1,
         Product.sku == product.sku
@@ -42,7 +40,6 @@ def create_product(
             detail="SKU already exists."
         )
 
-    # Duplicate product name in same category
     existing_product = db.query(Product).filter(
         Product.company_id == 1,
         Product.category_id == product.category_id,
@@ -55,7 +52,6 @@ def create_product(
             detail="Product already exists in this category."
         )
 
-    # Price validations
     if product.unit_price <= 0:
         raise HTTPException(
             status_code=400,
@@ -91,19 +87,21 @@ def create_product(
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
+
     create_audit_log(
-    db=db,
-    company=str(current_user["company_id"]),
-    user=current_user["sub"],
-    action=f"Created Product: {new_product.name}",
-    ip="127.0.0.1",
-    browser="Swagger"
-)
+        db=db,
+        company=str(current_user["company_id"]),
+        user=current_user["sub"],
+        action=f"Created Product: {new_product.name}",
+        ip="127.0.0.1",
+        browser="Swagger"
+    )
 
     return {
         "message": "Product created successfully",
         "product": new_product
     }
+
 @router.get("/")
 def get_products(
     search: Optional[str] = Query(None),
@@ -112,7 +110,35 @@ def get_products(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    query = db.query(Product).filter(
+        Product.company_id == 1
+    )
 
+    if search:
+        query = query.filter(
+            Product.name.ilike(f"%{search}%")
+        )
+
+    if category_id:
+        query = query.filter(
+            Product.category_id == category_id
+        )
+
+    if status:
+        query = query.filter(
+            Product.status == status
+        )
+
+    products = query.order_by(Product.id.desc()).all()
+
+    return products
+
+@router.get("/{product_id}")
+def get_product(
+    product_id: int,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     product = db.query(Product).filter(
         Product.id == product_id,
         Product.company_id == 1
@@ -126,13 +152,14 @@ def get_products(
 
     return product
 
+
 @router.put("/{product_id}")
 def update_product(
     product_id: int,
     product: ProductUpdate,
+    current_user=Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-
     db_product = db.query(Product).filter(
         Product.id == product_id,
         Product.company_id == 1
@@ -166,12 +193,12 @@ def update_product(
 @router.delete("/{product_id}")
 def delete_product(
     product_id: int,
+    current_user=Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-
     product = db.query(Product).filter(
         Product.id == product_id,
-        Product.company_id == current_user["compny_id"],
+        Product.company_id == 1
     ).first()
 
     if not product:
@@ -186,14 +213,19 @@ def delete_product(
     return {
         "message": "Product deleted successfully"
     }
+
+
+
 @router.put("/{id}/increase-stock")
 def increase_stock(
     id: int,
     stock: StockUpdate,
     db: Session = Depends(get_db)
 ):
-
-    product = db.query(Product).filter(Product.id == id).first()
+    product = db.query(Product).filter(
+        Product.id == id,
+        Product.company_id == 1
+    ).first()
 
     if not product:
         raise HTTPException(
@@ -204,19 +236,25 @@ def increase_stock(
     product.stock_quantity += stock.quantity
 
     db.commit()
+    db.refresh(product)
 
     return {
         "message": "Stock Increased",
         "stock": product.stock_quantity
     }
+
+
+
 @router.put("/{id}/decrease-stock")
 def decrease_stock(
     id: int,
     stock: StockUpdate,
     db: Session = Depends(get_db)
 ):
-
-    product = db.query(Product).filter(Product.id == id).first()
+    product = db.query(Product).filter(
+        Product.id == id,
+        Product.company_id == 1
+    ).first()
 
     if not product:
         raise HTTPException(
@@ -233,9 +271,9 @@ def decrease_stock(
     product.stock_quantity -= stock.quantity
 
     db.commit()
+    db.refresh(product)
 
     return {
         "message": "Stock Updated",
         "stock": product.stock_quantity
     }
-    

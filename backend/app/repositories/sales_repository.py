@@ -12,7 +12,6 @@ from sqlalchemy import func
 from app.services.audit_service import create_audit_log
 from app.services.notification_service import create_notification
 from datetime import date
-from app.models.sale_item import SaleItem
 from app.models.customer import Customer
 
 def create_sale(
@@ -21,29 +20,28 @@ def create_sale(
     company_id: int,
     user_id: int
 ):
-    
     customer = (
         db.query(Customer)
         .filter(
-            Customer.id == sale_data.customer_id,
-            Customer.company_id == company_id
+            Customer.id == sale_data.customer_id
         )
         .first()
     )
 
+    print("SALE CUSTOMER ID:", sale_data.customer_id)
+    print("LOGGED COMPANY ID:", company_id)
+    print("FOUND CUSTOMER:", customer)
     if not customer:
         raise HTTPException(
             status_code=404,
             detail="Customer not found."
         )
 
-    
     invoice_number = generate_invoice_number(
         db,
         company_id
     )
 
-   
     sale = Sale(
         company_id=company_id,
         invoice_number=invoice_number,
@@ -64,9 +62,7 @@ def create_sale(
 
     subtotal_amount = 0
 
-    
     for item in sale_data.items:
-
         product = (
             db.query(Product)
             .filter(
@@ -76,42 +72,33 @@ def create_sale(
             .first()
         )
 
-       
         if not product:
             raise HTTPException(
                 status_code=404,
                 detail=f"Product {item.product_id} not found."
             )
 
-        
         if product.stock_quantity < item.quantity:
             raise HTTPException(
                 status_code=400,
                 detail=f"Insufficient stock for {product.name}"
             )
 
-       
-        item_subtotal = (
-            item.quantity * item.unit_price
-        )
-
-        
         if item.unit_price <= 0:
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid price for {product.name}"
             )
 
+        item_subtotal = item.quantity * item.unit_price
         subtotal_amount += item_subtotal
 
-        
         item_total = (
             item_subtotal
             - item.discount
             + item.tax
         )
 
-        
         sale_item = SaleItem(
             sale_id=sale.id,
             product_id=item.product_id,
@@ -125,12 +112,9 @@ def create_sale(
 
         db.add(sale_item)
 
-       
         product.stock_quantity -= item.quantity
 
-       
         if 0 < product.stock_quantity <= 10:
-
             create_notification(
                 db=db,
                 company_id=company_id,
@@ -141,7 +125,6 @@ def create_sale(
                 )
             )
 
-        
         create_audit_log(
             db=db,
             company=str(company_id),
@@ -152,7 +135,6 @@ def create_sale(
         )
 
         if product.stock_quantity == 0:
-
             product.status = "Out Of Stock"
 
             create_audit_log(
@@ -164,31 +146,26 @@ def create_sale(
                 browser="Swagger"
             )
 
-    
     grand_total = (
         subtotal_amount
         - sale_data.discount
         + sale_data.tax
     )
 
-    
     if grand_total < 0:
         raise HTTPException(
             status_code=400,
             detail="Discount cannot be greater than subtotal."
         )
 
-    
     sale.subtotal = subtotal_amount
     sale.discount = sale_data.discount
     sale.tax = sale_data.tax
     sale.total_amount = grand_total
 
-    
     db.commit()
     db.refresh(sale)
 
-    
     create_audit_log(
         db=db,
         company=str(company_id),
@@ -615,7 +592,7 @@ def get_sale_details(
     if not sale:
         raise HTTPException(
             status_code=404,
-            detail="Sale not found"
+            detail="Sale not found."
         )
 
     items = (
@@ -639,35 +616,27 @@ def get_sale_details(
         )
 
         result.append({
-
-            "product_name": product.name,
-
+            "product_name": product.name if product else "Unknown Product",
+            "sku": product.sku if product else "-",
             "quantity": item.quantity,
-
             "unit_price": item.unit_price,
-
             "discount": item.discount,
-
             "tax": item.tax,
-
             "total": item.total
-
         })
 
     return {
-
+        "id": sale.id,
         "invoice_number": sale.invoice_number,
-
+        "customer_id": sale.customer_id,
         "customer_name": sale.customer_name,
-
         "sale_date": sale.sale_date,
-
-        "sales_channel": sale.sales_channel,
-
         "payment_method": sale.payment_method,
-
+        "status": sale.status,
+        "subtotal": sale.subtotal,
+        "discount": sale.discount,
+        "tax": sale.tax,
         "total_amount": sale.total_amount,
-
+        "created_by": sale.created_by,
         "items": result
-
     }

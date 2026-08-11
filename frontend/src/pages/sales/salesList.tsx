@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getSales } from "../../api/salesApi";
 import type { Sale } from "../../types/sales";
 import DashboardCards from "../../components/sales/DashboardCards";
-import { getDashboardSummary } from "../../api/salesApi";
+import {getSalesDashboard } from "../../api/salesApi";
 import type { DashboardSummary } from "../../types/sales";
 import SalesTable from "../../components/sales/SalesTable";
 import SearchFilter from "../../components/sales/SearchFilter";
@@ -35,7 +35,7 @@ const SalesList = () => {
 
     const loadSummary = async () => {
     try {
-        const response = await getDashboardSummary();
+        const response = await getSalesDashboard();
         setSummary(response.data);
     } catch (error) {
         console.error(error);

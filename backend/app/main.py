@@ -16,7 +16,6 @@ from app.api.product import router as product_router
 from app.api.dashboard import router as dashboard_router
 from app.models.sales import Sale
 from app.models.sale_item import SaleItem
-from app.api.sales import router as sales_router
 from app.models.notification import Notification
 from app.api.notification import router as notification_router
 from app.models.inventory import Inventory
@@ -31,7 +30,7 @@ from app.models.demand_forecast import DemandForecast
 from app.models.forecast_history import ForecastHistory
 from app.api.demand_forecast import router as demand_forecast_router
 from app.api.forecast import router as forecast_router
-
+from app.api.sales import router as sales_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -77,7 +76,7 @@ app.include_router(
 )
 app.include_router(
     product_router,
-    prefix="/api",
+    prefix="/products",
     tags=["Products"]
 )
 app.include_router(
@@ -121,6 +120,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 @app.get("/")
 def root():
 
