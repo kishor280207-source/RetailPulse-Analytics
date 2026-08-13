@@ -14,6 +14,7 @@ interface Product {
     name: string;
     sku?: string;
     category_id: number;
+    category_name?: string;
     unit_price: number;
     stock_quantity: number;
 }
@@ -290,42 +291,24 @@ const CreateSale = () => {
 
             navigate("/sales");
 
-        }   catch (err: any) {
-    console.log("========== SALE ERROR ==========");
+        } catch (err: any) {
+    console.error("CREATE SALE ERROR:", err);
 
-    console.log("FULL ERROR:", err);
-    console.log("MESSAGE:", err?.message);
-    console.log("CODE:", err?.code);
-    console.log("RESPONSE:", err?.response);
-    console.log("STATUS:", err?.response?.status);
-    console.log("DATA:", err?.response?.data);
-    console.log("URL:", err?.config?.url);
+    if (err.response) {
+        console.log("Backend:", err.response.data);
 
-    console.log("================================");
-
-    if (err?.response) {
         const detail = err.response.data?.detail;
 
-        setError(
-            typeof detail === "string"
-                ? detail
-                : Array.isArray(detail)
-                ? detail.map((x: any) => x.msg).join(", ")
-                : `Backend error: ${err.response.status}`
-        );
-    } else if (err?.request) {
-        setError(
-            "Backend did not respond. Check whether FastAPI is running."
-        );
+        if (Array.isArray(detail)) {
+            setError(detail.map((x: any) => x.msg).join(", "));
+        } else {
+            setError(detail || "Sale creation failed.");
+        }
     } else {
-        setError(
-            err?.message || "Request failed."
-        );
+        setError("Cannot connect to backend.");
     }
-
 } finally {
     setSaving(false);
-    console.log("SAVE SALE FINISHED");
 }
     };
 
@@ -483,12 +466,8 @@ const CreateSale = () => {
                     </p>
 
                     <p>
-                        <strong>
-                            Category ID:
-                        </strong>{" "}
-                        {
-                            selectedProduct.category_id
-                        }
+                        <strong>Category:</strong>{" "}
+                        {selectedProduct.category_name || "-"}
                     </p>
 
                     <p>

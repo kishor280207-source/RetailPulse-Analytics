@@ -11,22 +11,23 @@ const SearchFilter = ({ onSearch }: Props) => {
         customer_name: "",
         product_name: "",
         payment_method: "",
-        sales_channel: ""
+        status: "",
+        start_date: "",
+        end_date: "",
+        sort_by: "",
+        sort_order: "desc"
     });
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
-
         setFilters({
             ...filters,
             [e.target.name]: e.target.value
         });
-
     };
 
     return (
-
         <div
             style={{
                 display: "flex",
@@ -36,7 +37,6 @@ const SearchFilter = ({ onSearch }: Props) => {
                 marginBottom: "20px"
             }}
         >
-
             <input
                 type="text"
                 name="invoice_number"
@@ -66,7 +66,7 @@ const SearchFilter = ({ onSearch }: Props) => {
                 value={filters.payment_method}
                 onChange={handleChange}
             >
-                <option value="">Payment</option>
+                <option value="">Payment Method</option>
                 <option value="Cash">Cash</option>
                 <option value="Card">Card</option>
                 <option value="UPI">UPI</option>
@@ -74,26 +74,62 @@ const SearchFilter = ({ onSearch }: Props) => {
             </select>
 
             <select
-                name="sales_channel"
-                value={filters.sales_channel}
+                name="status"
+                value={filters.status}
                 onChange={handleChange}
             >
-                <option value="">Sales Channel</option>
-                <option value="Retail Store">Retail Store</option>
-                <option value="Online Store">Online Store</option>
-                <option value="Marketplace">Marketplace</option>
+                <option value="">Payment Status</option>
+                <option value="Completed">Completed</option>
+                <option value="Pending">Pending</option>
+                <option value="Refunded">Refunded</option>
+                <option value="Cancelled">Cancelled</option>
             </select>
 
-            <button
-                onClick={() => onSearch(filters)}
+            <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                From:
+                <input
+                    type="date"
+                    name="start_date"
+                    value={filters.start_date}
+                    onChange={handleChange}
+                />
+            </label>
+
+            <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                To:
+                <input
+                    type="date"
+                    name="end_date"
+                    value={filters.end_date}
+                    onChange={handleChange}
+                />
+            </label>
+
+            <select
+                name="sort_by"
+                value={filters.sort_by}
+                onChange={handleChange}
             >
+                <option value="">Sort By</option>
+                <option value="date">Date</option>
+                <option value="total_amount">Total Amount</option>
+                <option value="customer_name">Customer Name</option>
+            </select>
+
+            <select
+                name="sort_order"
+                value={filters.sort_order}
+                onChange={handleChange}
+            >
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
+            </select>
+
+            <button onClick={() => onSearch(filters)}>
                 Search
             </button>
-
         </div>
-
     );
-
 };
 
 export default SearchFilter;

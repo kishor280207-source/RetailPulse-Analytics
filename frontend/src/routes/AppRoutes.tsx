@@ -23,6 +23,9 @@ import CustomerPurchaseHistoryPage from "../pages/Customers/CustomerPurchaseHist
 import CustomerSegmentsPage from "../pages/Customers/CustomerSegmentsPage";
 import SalesDetails from "../pages/sales/SalesDetails";
 import ForecastPage from "../pages/Forecast/ForecastPage";
+import EditSale from "../pages/sales/EditSale";
+import SalesAnalytics from "../pages/Analytics/SalesAnalytics";
+
 
 export default function AppRoutes() {
     return (
@@ -102,6 +105,12 @@ export default function AppRoutes() {
                         path="/customers/segments"
                         element={<CustomerSegmentsPage />}
                     />
+                    <Route
+                        path="/sales/edit/:id"
+                        element={<EditSale />}
+
+                    />
+                    <Route path="/analytics/sales" element={<SalesAnalytics />} />
 
                     
 

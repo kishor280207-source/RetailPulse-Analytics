@@ -49,6 +49,7 @@ class SaleResponse(BaseModel):
     total_amount: float
     status: str
     created_by: int
+    item_count: Optional[int] = None
 
     class Config:
         from_attributes = True

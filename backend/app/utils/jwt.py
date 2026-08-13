@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 SECRET_KEY = "RetailPulseSecretKey123"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 240
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 

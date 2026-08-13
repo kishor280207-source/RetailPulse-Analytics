@@ -44,8 +44,9 @@ const handleDelete = async (id: number) => {
           <th>Customer</th>
           <th>Date</th>
           <th>Payment</th>
+          <th>Items</th>
           <th>Total Amount</th>
-          <th>Status</th>
+          <th>Payment Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -53,7 +54,7 @@ const handleDelete = async (id: number) => {
       <tbody>
         {sales.length === 0 ? (
           <tr>
-            <td colSpan={7} align="center">
+            <td colSpan={8} align="center">
               No Sales Found
             </td>
           </tr>
@@ -69,8 +70,8 @@ const handleDelete = async (id: number) => {
                   ? new Date(sale.sale_date).toLocaleDateString()
                   : "-"}
               </td>
-
               <td>{sale.payment_method}</td>
+              <td>{sale.item_count ?? "-"}</td>
 
               <td>₹ {sale.total_amount ?? 0}</td>
 

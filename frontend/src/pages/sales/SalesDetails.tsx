@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getSaleDetails } from "../../api/salesApi";
+import { exportInvoicePDF,exportInvoiceCSV } from "../../utils/invoiceExport";
 
 const SalesDetails = () => {
     const { id } = useParams();
@@ -79,6 +80,30 @@ const SalesDetails = () => {
             </button>
 
             <h1>Sales Details</h1>
+            <div
+               style={{
+               marginBottom: "20px"
+               }}
+            >
+            <button
+                onClick={() =>
+                 exportInvoicePDF(sale)
+                }
+                style={{
+                  marginRight: "10px"
+                 }} 
+            >
+               Export PDF
+            </button>
+
+            <button
+             onClick={() =>
+               exportInvoiceCSV(sale)
+            }
+            >
+               Export CSV
+            </button>
+            </div>
 
             <div
                 style={{
@@ -110,6 +135,10 @@ const SalesDetails = () => {
                     <strong>Payment Method:</strong>{" "}
                     {sale.payment_method}
                 </p>
+                <p>
+                  <strong>Salesperson:</strong>{" "}
+                  {sale.salesperson_name}
+               </p>
 
                 <p>
                     <strong>Status:</strong>{" "}

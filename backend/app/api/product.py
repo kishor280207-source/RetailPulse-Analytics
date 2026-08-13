@@ -10,6 +10,8 @@ from app.schemas.stock import StockUpdate
 from app.dependencies.current_user import get_current_user
 from app.dependencies.role import require_admin
 from app.services.audit_service import create_audit_log
+from app.models.category import Category
+
 
 router = APIRouter()
 
@@ -30,7 +32,7 @@ def create_product(
         )
 
     existing_sku = db.query(Product).filter(
-        Product.company_id == 1,
+        Product.company_id == current_user["company_id"],
         Product.sku == product.sku
     ).first()
 
@@ -41,7 +43,7 @@ def create_product(
         )
 
     existing_product = db.query(Product).filter(
-        Product.company_id == 1,
+        Product.company_id == current_user["company_id"],
         Product.category_id == product.category_id,
         Product.name == product.name
     ).first()
@@ -71,7 +73,7 @@ def create_product(
         )
 
     new_product = Product(
-        company_id=1,
+        company_id=current_user["company_id"],
         category_id=product.category_id,
         name=product.name,
         sku=product.sku,
@@ -111,7 +113,7 @@ def get_products(
     db: Session = Depends(get_db)
 ):
     query = db.query(Product).filter(
-        Product.company_id == 1
+        Product.company_id == current_user["company_id"] 
     )
 
     if search:
@@ -131,6 +133,10 @@ def get_products(
 
     products = query.order_by(Product.id.desc()).all()
 
+    for product in products:
+        category = db.query(Category).filter(Category.id == product.category_id).first()
+        product.category_name = category.name if category else "Uncategorized"
+
     return products
 
 @router.get("/{product_id}")
@@ -141,7 +147,7 @@ def get_product(
 ):
     product = db.query(Product).filter(
         Product.id == product_id,
-        Product.company_id == 1
+        Product.company_id == current_user["company_id"]
     ).first()
 
     if not product:
@@ -162,7 +168,7 @@ def update_product(
 ):
     db_product = db.query(Product).filter(
         Product.id == product_id,
-        Product.company_id == 1
+        Product.company_id == current_user["company_id"]
     ).first()
 
     if not db_product:
@@ -198,7 +204,7 @@ def delete_product(
 ):
     product = db.query(Product).filter(
         Product.id == product_id,
-        Product.company_id == 1
+       Product.company_id == current_user["company_id"]
     ).first()
 
     if not product:
@@ -220,11 +226,12 @@ def delete_product(
 def increase_stock(
     id: int,
     stock: StockUpdate,
+    current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     product = db.query(Product).filter(
         Product.id == id,
-        Product.company_id == 1
+        Product.company_id == current_user["company_id"]
     ).first()
 
     if not product:
@@ -249,11 +256,12 @@ def increase_stock(
 def decrease_stock(
     id: int,
     stock: StockUpdate,
+    current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     product = db.query(Product).filter(
         Product.id == id,
-        Product.company_id == 1
+        Product.company_id == current_user["company_id"]
     ).first()
 
     if not product:

@@ -9,20 +9,24 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const token =
-            localStorage.getItem("access_token") ||
-            localStorage.getItem("token");
+        const token = localStorage.getItem("access_token");
 
-        
-        console.log("TOKEN EXISTS:", !!token);
+        console.log("========== API REQUEST ==========");
+        console.log("URL:", config.url);
+        console.log("Token exists:", !!token);
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+            console.log("Authorization header added");
+        } else {
+            console.log("NO ACCESS TOKEN");
         }
 
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => {
+        return Promise.reject(error);
+    }
 );
 
 export default api;
