@@ -30,6 +30,11 @@ const menuItems = [
     icon: <InventoryIcon />,
     path: "/inventory",
   },
+    {
+    text: "Inventory Forecast",
+    icon: <AutoGraphIcon />,
+    path: "/inventory/forecast",
+  },
   {
     text: "Sales",
     icon: <ShoppingCartIcon />,

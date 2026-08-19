@@ -31,6 +31,7 @@ from app.models.forecast_history import ForecastHistory
 from app.api.demand_forecast import router as demand_forecast_router
 from app.api.forecast import router as forecast_router
 from app.api.sales import router as sales_router
+from app.api.inventory_forecast import router as inventory_forecast_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -111,6 +112,11 @@ app.include_router(
     forecast_router,
     prefix="/forecast",
     tags=["Forecast"]
+)
+app.include_router(
+    inventory_forecast_router,
+    prefix="/inventory",
+    tags=["Inventory Forecast"]
 )
 
 app.add_middleware(

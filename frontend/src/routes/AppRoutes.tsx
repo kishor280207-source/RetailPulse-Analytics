@@ -25,7 +25,7 @@ import SalesDetails from "../pages/sales/SalesDetails";
 import ForecastPage from "../pages/Forecast/ForecastPage";
 import EditSale from "../pages/sales/EditSale";
 import SalesAnalytics from "../pages/Analytics/SalesAnalytics";
-
+import InventoryForecast from "../pages/Inventory/InventoryForecast";
 
 export default function AppRoutes() {
     return (
@@ -110,6 +110,7 @@ export default function AppRoutes() {
                         element={<EditSale />}
 
                     />
+                    <Route path="/inventory/forecast" element={<InventoryForecast />} />
                     <Route path="/analytics/sales" element={<SalesAnalytics />} />
 
                     
