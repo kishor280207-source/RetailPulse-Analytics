@@ -25,8 +25,8 @@ import SalesDetails from "../pages/sales/SalesDetails";
 import ForecastPage from "../pages/Forecast/ForecastPage";
 import EditSale from "../pages/sales/EditSale";
 import SalesAnalytics from "../pages/Analytics/SalesAnalytics";
-import InventoryForecast from "../pages/Inventory/InventoryForecast";
-
+import InventoryForecast from "../pages/inventory/InventoryForecast";
+import DataImport from "../pages/DataImport/DataImport";
 export default function AppRoutes() {
     return (
         
@@ -112,6 +112,7 @@ export default function AppRoutes() {
                     />
                     <Route path="/inventory/forecast" element={<InventoryForecast />} />
                     <Route path="/analytics/sales" element={<SalesAnalytics />} />
+                    <Route path="/data-import" element={<DataImport />} />
 
                     
 

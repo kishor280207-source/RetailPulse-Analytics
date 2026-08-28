@@ -37,7 +37,7 @@ export default function SummaryCard({
           px: 3,
         }}
       >
-        {/* Left Side */}
+    
         <Box>
           <Typography
             sx={{
@@ -83,8 +83,6 @@ export default function SummaryCard({
             </Typography>
           </Box>
         </Box>
-
-        {/* Right Side */}
         <Box
           sx={{
             width: 90,

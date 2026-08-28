@@ -36,7 +36,7 @@ export default function RecentSales() {
     <Card
        sx={{
         borderRadius: 4,
-        height: 420,
+        height: 300,
         }}
     >
       <CardContent>

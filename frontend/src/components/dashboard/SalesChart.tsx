@@ -35,14 +35,14 @@ export default function SalesChart() {
           Sales by Category
         </Typography>
 
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={420}>
 
           <PieChart>
 
             <Pie
               data={data}
               dataKey="value"
-              outerRadius={100}
+              outerRadius={150}
             >
               {data.map((_, index) => (
                 <Cell

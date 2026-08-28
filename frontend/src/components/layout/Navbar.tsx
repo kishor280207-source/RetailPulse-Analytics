@@ -12,8 +12,34 @@ import {
 
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export default function Navbar() {
+  const navigate = useNavigate();
+   const [search, setSearch] = useState("");
+
+  const handleSearch = () => {
+    const value = search.trim().toLowerCase();
+
+    const pages: Record<string, string> = {
+      dashboard: "/dashboard",
+      inventory: "/inventory",
+      sales: "/sales",
+      products: "/products",
+      categories: "/categories",
+      customers: "/customers",
+      profile: "/profile",
+      forecast: "/forecast",
+    };
+
+    if (pages[value]) {
+      navigate(pages[value]);
+      setSearch("");
+    } else {
+      alert("Page not found");
+    }
+  };
   return (
     <AppBar
       position="fixed"
@@ -40,6 +66,13 @@ export default function Navbar() {
         <TextField
           size="small"
           placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => {
+             if (e.key === "Enter") {
+                  handleSearch();
+              }
+  }}
           sx={{
             width: 320,
             bgcolor: "#f5f7fa",
@@ -62,11 +95,14 @@ export default function Navbar() {
             <NotificationsIcon />
           </Badge>
 
-        </IconButton>
+        </IconButton >
 
-        <Avatar sx={{ ml: 2, bgcolor: "#1976d2" }}>
+        <IconButton  onClick={() => navigate("/profile")}
+          sx={{ ml: 1 }}>
+          <Avatar sx={{ ml: 2, bgcolor: "#1976d2" }}>
           A
         </Avatar>
+        </IconButton>
 
       </Toolbar>
     </AppBar>

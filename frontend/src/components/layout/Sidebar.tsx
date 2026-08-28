@@ -14,7 +14,8 @@ import CategoryIcon from "@mui/icons-material/Category";
 import PeopleIcon from "@mui/icons-material/People";
 import PersonIcon from "@mui/icons-material/Person";
 import StoreIcon from "@mui/icons-material/Store";
-
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import { jwtDecode } from "jwt-decode";
 import { Link, useLocation } from "react-router-dom";
 import AutoGraphIcon from "@mui/icons-material/AutoGraph";
 const drawerWidth = 240;
@@ -65,10 +66,28 @@ const menuItems = [
     icon: <AutoGraphIcon />,
     path: "/forecast",
 },
+{
+  text: "Data Import",
+  icon: <UploadFileIcon />,
+  path: "/data-import",
+},
 ];
 
 export default function Sidebar() {
   const location = useLocation();
+    const token = localStorage.getItem("access_token");
+  let userRole = "";
+
+  if (token) {
+    try {
+      const decoded: any = jwtDecode(token);
+      userRole = decoded.role || "";
+    } catch (err) {
+      console.error("Failed to decode token:", err);
+    }
+  }
+
+  const isAdmin = userRole === "Admin";
 
   return (
     <Drawer
@@ -87,7 +106,9 @@ export default function Sidebar() {
       <Toolbar />
 
       <List>
-        {menuItems.map((item) => (
+        {menuItems
+          .filter((item) => item.text !== "Data Import" || isAdmin)
+          .map((item) => (
           <ListItemButton
             key={item.text}
             component={Link}

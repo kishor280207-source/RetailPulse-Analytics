@@ -2,7 +2,6 @@ import {
   Card,
   CardContent,
   Typography,
-  List,
   ListItem,
   LinearProgress,
 } from "@mui/material";
@@ -31,7 +30,7 @@ export default function TopProducts() {
     <Card
         sx={{
           borderRadius: 4,
-          height: 420,
+          height: 300,
          }}
     >
       <CardContent>

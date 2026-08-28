@@ -32,6 +32,7 @@ from app.api.demand_forecast import router as demand_forecast_router
 from app.api.forecast import router as forecast_router
 from app.api.sales import router as sales_router
 from app.api.inventory_forecast import router as inventory_forecast_router
+from app.api.import_data import router as import_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -118,7 +119,11 @@ app.include_router(
     prefix="/inventory",
     tags=["Inventory Forecast"]
 )
-
+app.include_router(
+    import_router,
+    prefix="/import",
+    tags=["Data Import"]
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

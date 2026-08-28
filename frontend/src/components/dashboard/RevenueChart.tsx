@@ -25,7 +25,8 @@ const data = [
 
 export default function RevenueChart() {
   return (
-    <Card sx={{ borderRadius: 3 }}>
+    
+    <Card sx={{ borderRadius: 3,width: "100%"}}>
       <CardContent>
 
         <Typography variant="h6" mb={2}>

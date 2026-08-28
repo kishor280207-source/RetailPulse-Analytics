@@ -1,18 +1,16 @@
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import InventoryIcon from "@mui/icons-material/Inventory2";
 import PeopleIcon from "@mui/icons-material/People";
-
 import SummaryCard from "../../components/dashboard/SummaryCard";
 import RevenueChart from "../../components/dashboard/RevenueChart";
 import SalesChart from "../../components/dashboard/SalesChart";
 import RecentSales from "../../components/dashboard/RecentSales";
 import TopProducts from "../../components/dashboard/TopProducts";
 import WelcomeBanner from "../../components/dashboard/WelcomeBanner";
-import { Stack, Button } from "@mui/material";
+
 
 export default function Dashboard() {
 
@@ -28,9 +26,9 @@ export default function Dashboard() {
         Dashboard
       </Typography>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={2} sx={{ width: "100%" }}>
 
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <SummaryCard
             title="Revenue"
             value="₹12,45,000"
@@ -39,7 +37,7 @@ export default function Dashboard() {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <SummaryCard
             title="Orders"
             value="1,245"
@@ -48,7 +46,7 @@ export default function Dashboard() {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <SummaryCard
             title="Products"
             value="325"
@@ -57,7 +55,7 @@ export default function Dashboard() {
           />
         </Grid>
 
-       <Grid item xs={12} sm={6} lg={3}>
+       <Grid size={{ xs: 12, md: 6 }}>
           <SummaryCard
             title="Customers"
             value="856"
@@ -69,29 +67,30 @@ export default function Dashboard() {
       </Grid>
       <Grid container spacing={3} sx={{ mt: 2 }}>
 
-      <Grid item xs={12} md={8}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <RevenueChart />
       </Grid>
 
-      <Grid item xs={12} md={4}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <SalesChart />
       </Grid>
 
     </Grid>
     <Grid container spacing={3} sx={{ mt: 2 }}>
 
-    <Grid item xs={12} md={8}>
+    <Grid size={{ xs: 12, md: 6 }}>
      <RecentSales />
     </Grid>
 
-    <Grid item xs={12} md={4}>
+    <Grid size={{ xs: 12, md: 6 }}>
      <TopProducts />
     </Grid>
 
    </Grid>
-   <Stack
+   <br></br>
+   {/* <Stack
     direction="row"
-    spacing={2}
+    spacing={4}
     mt={4}
     mb={4}
 >
@@ -112,7 +111,7 @@ export default function Dashboard() {
       Export Report
     </Button>
 
-</Stack>
+</Stack> */}
   
 
     </>

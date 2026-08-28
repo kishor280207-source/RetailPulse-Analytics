@@ -18,7 +18,11 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
             console.log("Authorization header added");
-        } else {
+        }
+        if (config.data instanceof FormData) {
+            delete config.headers["Content-Type"];
+        } 
+        else {
             console.log("NO ACCESS TOKEN");
         }
 

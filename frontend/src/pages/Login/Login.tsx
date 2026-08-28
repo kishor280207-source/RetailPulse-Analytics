@@ -12,7 +12,7 @@ export default function Login() {
     register,
     handleSubmit,
   } = useForm<LoginForm>();
-  const navigate = useNavigate();
+  const navigates = useNavigate();
 
  
 
@@ -32,7 +32,7 @@ export default function Login() {
 
     alert("Login Successful");
 
-    navigate("/dashboard");
+    navigates("/dashboard");
   }
   catch (error: any) {
   console.log("Full Error:", error);
