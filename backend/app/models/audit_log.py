@@ -11,24 +11,23 @@ class AuditLog(Base):
 
     company_id = Column(Integer, nullable=False)
     user_id = Column(Integer, nullable=True)
-    user_name = Column(String, nullable=True)  # denormalized for fast display, avoids a join on every log view
-
-    action = Column(String, nullable=False)  # CREATE | UPDATE | DELETE | LOGIN | LOGOUT | IMPORT | EXPORT | etc.
-    resource_type = Column(String, nullable=True)  # "Product", "Sale", "Customer", "User", etc.
+    user_name = Column(String, nullable=True)  
+    action = Column(String, nullable=False)  
+    resource_type = Column(String, nullable=True)  
     resource_id = Column(String, nullable=True)
 
     description = Column(String, nullable=True)
-    status = Column(String, default="Success")  # Success | Failure
+    status = Column(String, default="Success")  
 
-    before_values = Column(Text, nullable=True)  # JSON string
-    after_values = Column(Text, nullable=True)  # JSON string
+    before_values = Column(Text, nullable=True) 
+    after_values = Column(Text, nullable=True) 
 
     ip_address = Column(String, nullable=True)
     user_agent = Column(String, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # legacy columns kept so old data/calls don't break - no longer written to going forward
+  
     company = Column(String, nullable=True)
     user = Column(String, nullable=True)
     browser = Column(String, nullable=True)
