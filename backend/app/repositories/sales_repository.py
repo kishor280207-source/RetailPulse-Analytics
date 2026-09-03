@@ -42,6 +42,8 @@ def create_sale(
     company_id: int,
     user_id: int
 ):
+    user_record = db.query(User).filter(User.id == user_id).first()
+    user_display_name = user_record.name if user_record else str(user_id)
     customer = (
     db.query(Customer)
     .filter(
@@ -186,11 +188,13 @@ def create_sale(
 
         create_audit_log(
             db=db,
-            company=str(company_id),
-            user=str(user_id),
-            action=f"Inventory Updated - {product.name}",
-            ip="127.0.0.1",
-            browser="Swagger"
+            company_id=company_id,
+            user_id=user_id,
+            user_name=user_display_name,
+            action="STOCK_ADJUSTMENT",
+            resource_type="Product",
+            resource_id=product.id,
+            description=f"Stock reduced for {product.name} due to sale {sale.invoice_number}",
         )
 
         if product.stock_quantity == 0:
@@ -198,11 +202,15 @@ def create_sale(
 
             create_audit_log(
                 db=db,
-                company=str(company_id),
-                user=str(user_id),
-                action=f"Product Out Of Stock - {product.name}",
-                ip="127.0.0.1",
-                browser="Swagger"
+                company_id=company_id,
+                user_id=user_id,
+                user_name=user_display_name,
+                action="UPDATE",
+                resource_type="Product",
+                resource_id=product.id,
+                description=f"{product.name} marked Out Of Stock",
+                before_values={"status": "Active"},
+                after_values={"status": "Out Of Stock"},
             )
 
     grand_total = (
@@ -227,11 +235,13 @@ def create_sale(
 
     create_audit_log(
         db=db,
-        company=str(company_id),
-        user=str(user_id),
-        action=f"Sale Created - {sale.invoice_number}",
-        ip="127.0.0.1",
-        browser="Swagger"
+        company_id=company_id,
+        user_id=user_id,
+        user_name=user_display_name,
+        action="CREATE",
+        resource_type="Sale",
+        resource_id=sale.id,
+        description=f"Sale created - {sale.invoice_number}, total ₹{grand_total}",
     )
 
     return sale

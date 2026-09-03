@@ -92,11 +92,13 @@ def create_product(
 
     create_audit_log(
         db=db,
-        company=str(current_user["company_id"]),
-        user=current_user["sub"],
-        action=f"Created Product: {new_product.name}",
-        ip="127.0.0.1",
-        browser="Swagger"
+        company_id=current_user["company_id"],
+        user_id=current_user.get("user_id"),
+        user_name=current_user.get("sub", "Unknown"),
+        action="CREATE",
+        resource_type="Product",
+        resource_id=new_product.id,
+        description=f"Created product: {new_product.name}",
     )
 
     return {

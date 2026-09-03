@@ -18,6 +18,8 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { jwtDecode } from "jwt-decode";
 import { Link, useLocation } from "react-router-dom";
 import AutoGraphIcon from "@mui/icons-material/AutoGraph";
+import HistoryIcon from "@mui/icons-material/History";
+
 const drawerWidth = 240;
 
 const menuItems = [
@@ -71,6 +73,11 @@ const menuItems = [
   icon: <UploadFileIcon />,
   path: "/data-import",
 },
+{
+  text: "Audit Logs",
+  icon: <HistoryIcon />,
+  path: "/audit-logs",
+},
 ];
 
 export default function Sidebar() {
@@ -107,9 +114,9 @@ export default function Sidebar() {
 
       <List>
         {menuItems
-          .filter((item) => item.text !== "Data Import" || isAdmin)
-          .map((item) => (
-          <ListItemButton
+            .filter((item) => !["Data Import", "Audit Logs"].includes(item.text) || isAdmin)
+            .map((item) => (
+            <ListItemButton
             key={item.text}
             component={Link}
             to={item.path}

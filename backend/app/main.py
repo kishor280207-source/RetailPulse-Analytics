@@ -33,12 +33,28 @@ from app.api.forecast import router as forecast_router
 from app.api.sales import router as sales_router
 from app.api.inventory_forecast import router as inventory_forecast_router
 from app.api.import_data import router as import_router
-
+from starlette.middleware.base import BaseHTTPMiddleware
+from app.middleware.request_context import set_request_context
+from app.api.audit_logs import router as audit_logs_router
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="RetailPulse Analytics"
 )
+
+class RequestContextMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        forwarded = request.headers.get("x-forwarded-for")
+        ip = forwarded.split(",")[0].strip() if forwarded else (
+            request.client.host if request.client else "unknown"
+        )
+        user_agent = request.headers.get("user-agent", "unknown")
+        set_request_context(ip, user_agent)
+        response = await call_next(request)
+        return response
+
+
+app.add_middleware(RequestContextMiddleware)
 
 app.include_router(
     company_router,
@@ -123,6 +139,11 @@ app.include_router(
     import_router,
     prefix="/import",
     tags=["Data Import"]
+)
+app.include_router(
+    audit_logs_router,
+    prefix="/audit-logs",
+    tags=["Audit Logs"]
 )
 app.add_middleware(
     CORSMiddleware,
