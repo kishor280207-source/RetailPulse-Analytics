@@ -17,6 +17,7 @@ from app.models.customer import Customer
 from app.models.inventory import Inventory
 from app.models.inventory_movement import InventoryMovement
 from app.models.user import User
+from app.services.alert_service import evaluate_product_stock_alert
 
 def _get_sale_ids_for_item_filters(db, company_id, product_id=None, category_id=None):
     if not product_id and not category_id:
@@ -175,16 +176,7 @@ def create_sale(
 
         product.stock_quantity -= item.quantity
 
-        if 0 < product.stock_quantity <= 10: 
-            create_notification(
-                db=db,
-                company_id=company_id,
-                title="Low Stock Alert",
-                message=(
-                    f"{product.name} has only "
-                    f"{product.stock_quantity} items remaining."
-                )
-            )
+        evaluate_product_stock_alert(db, company_id, product)
 
         create_audit_log(
             db=db,

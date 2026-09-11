@@ -14,6 +14,7 @@ from app.models.import_error import ImportError as ImportErrorModel
 from app.repositories.sales_repository import generate_invoice_number
 import re
 from datetime import datetime as dt
+from app.services.notification_service import create_notification
 
 REQUIRED_COLUMNS = {
     "Products": ["Product Name", "SKU", "Category", "Unit Price", "Stock Quantity"],
@@ -364,7 +365,40 @@ def process_import(db: Session, company_id: int, user_id: int, import_type: str,
         )
         db.add(error_entry)
 
-    db.commit()
+        db.commit()
+        if import_history.status == "Completed":
+           create_notification(
+            db=db,
+            company_id=company_id,
+            type="ImportCompleted",
+            priority="Low",
+            title="Import Completed",
+            message=f"{import_type} import '{filename}' completed successfully - {import_history.successful_records} records added.",
+            resource_type="Import",
+            resource_id=import_history.id,
+        )
+        elif import_history.status == "Completed with Errors":
+            create_notification(
+            db=db,
+            company_id=company_id,
+            type="ImportCompleted",
+            priority="Medium",
+            title="Import Completed with Errors",
+            message=f"{import_type} import '{filename}' finished with {import_history.failed_records} failed and {import_history.duplicate_records} duplicate records.",
+            resource_type="Import",
+            resource_id=import_history.id,
+        )
+        else:
+            create_notification(
+            db=db,
+            company_id=company_id,
+            type="ImportFailed",
+            priority="High",
+            title="Import Failed",
+            message=f"{import_type} import '{filename}' failed to process.",
+            resource_type="Import",
+            resource_id=import_history.id,
+        )
 
     return {
         "import_id": import_history.id,

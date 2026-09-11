@@ -14,6 +14,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import NotificationCenter from "../notifications/NotificationCenter";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -89,13 +90,7 @@ export default function Navbar() {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <IconButton>
-
-          <Badge badgeContent={3} color="error">
-            <NotificationsIcon />
-          </Badge>
-
-        </IconButton >
+        <NotificationCenter />
 
         <IconButton  onClick={() => navigate("/profile")}
           sx={{ ml: 1 }}>
