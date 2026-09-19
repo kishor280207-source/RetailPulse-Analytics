@@ -19,6 +19,8 @@ import { jwtDecode } from "jwt-decode";
 import { Link, useLocation } from "react-router-dom";
 import AutoGraphIcon from "@mui/icons-material/AutoGraph";
 import HistoryIcon from "@mui/icons-material/History";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import ScheduleIcon from "@mui/icons-material/Schedule";
 
 const drawerWidth = 240;
 
@@ -77,6 +79,16 @@ const menuItems = [
   text: "Audit Logs",
   icon: <HistoryIcon />,
   path: "/audit-logs",
+},
+{
+  text: "Reports",
+  icon: <AssessmentIcon />,
+  path: "/reports",
+},
+{
+  text: "Scheduled Reports",
+  icon: <ScheduleIcon />,
+  path: "/reports/scheduled",
 },
 ];
 

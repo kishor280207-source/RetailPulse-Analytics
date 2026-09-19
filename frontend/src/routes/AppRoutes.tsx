@@ -28,6 +28,8 @@ import SalesAnalytics from "../pages/Analytics/SalesAnalytics";
 import InventoryForecast from "../pages/inventory/InventoryForecast";
 import DataImport from "../pages/DataImport/DataImport";
 import AuditLogs from "../pages/AuditLogs/AuditLogs";
+import Reports from "../pages/Reports/Reports";
+import ScheduledReports from "../pages/Reports/ScheduledReports";
 export default function AppRoutes() {
     return (
         
@@ -115,7 +117,8 @@ export default function AppRoutes() {
                     <Route path="/analytics/sales" element={<SalesAnalytics />} />
                     <Route path="/data-import" element={<DataImport />} />
                     <Route path="/audit-logs" element={<AuditLogs />} />
-                    
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/reports/scheduled" element={<ScheduledReports />} />
 
                 </Route>
 

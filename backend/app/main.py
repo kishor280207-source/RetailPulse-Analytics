@@ -37,6 +37,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.middleware.request_context import set_request_context
 from app.api.audit_logs import router as audit_logs_router
 from app.api.notification import router as notifications_router
+from app.api.reports import router as reports_router
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -150,6 +152,11 @@ app.include_router(
     notifications_router,
     prefix="/notifications",
     tags=["Notifications"]
+)
+app.include_router(
+    reports_router,
+    prefix="/reports",
+    tags=["Reports"]
 )
 app.add_middleware(
     CORSMiddleware,
