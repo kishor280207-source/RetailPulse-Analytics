@@ -38,6 +38,7 @@ from app.middleware.request_context import set_request_context
 from app.api.audit_logs import router as audit_logs_router
 from app.api.notification import router as notifications_router
 from app.api.reports import router as reports_router
+from app.api.data_quality import router as data_quality_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -157,6 +158,11 @@ app.include_router(
     reports_router,
     prefix="/reports",
     tags=["Reports"]
+)
+app.include_router(
+    data_quality_router, 
+    prefix="/data-quality", 
+    tags=["Data Quality"]
 )
 app.add_middleware(
     CORSMiddleware,

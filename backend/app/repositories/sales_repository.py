@@ -18,6 +18,7 @@ from app.models.inventory import Inventory
 from app.models.inventory_movement import InventoryMovement
 from app.models.user import User
 from app.services.alert_service import evaluate_product_stock_alert
+from app.services.realtime_checks import check_single_sale, check_single_movement
 
 def _get_sale_ids_for_item_filters(db, company_id, product_id=None, category_id=None):
     if not product_id and not category_id:
@@ -235,6 +236,7 @@ def create_sale(
         resource_id=sale.id,
         description=f"Sale created - {sale.invoice_number}, total ₹{grand_total}",
     )
+    check_single_sale(db, company_id, sale, customer, sale_data.items)
 
     return sale
 
@@ -1046,7 +1048,7 @@ def _calculate_forecast_for_product(db: Session, company_id: int, product: Produ
     else:
         recommended_quantity = 0
 
-        # RISK CLASSIFICATION (based on the numbers above, not manual status)
+       
     if avg_daily_demand == 0:
         risk = "No Sales Data"
         recommendation = "This product has no recent sales history - unable to forecast demand yet."

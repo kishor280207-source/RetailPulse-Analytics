@@ -21,6 +21,7 @@ import AutoGraphIcon from "@mui/icons-material/AutoGraph";
 import HistoryIcon from "@mui/icons-material/History";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import ScheduleIcon from "@mui/icons-material/Schedule";
+import FactCheckIcon from "@mui/icons-material/FactCheck";
 
 const drawerWidth = 240;
 
@@ -89,6 +90,11 @@ const menuItems = [
   text: "Scheduled Reports",
   icon: <ScheduleIcon />,
   path: "/reports/scheduled",
+},
+{
+  text: "Data Quality",
+  icon: <FactCheckIcon />,
+  path: "/data-quality",
 },
 ];
 

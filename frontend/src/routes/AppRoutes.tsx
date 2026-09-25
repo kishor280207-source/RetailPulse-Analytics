@@ -30,6 +30,8 @@ import DataImport from "../pages/DataImport/DataImport";
 import AuditLogs from "../pages/AuditLogs/AuditLogs";
 import Reports from "../pages/Reports/Reports";
 import ScheduledReports from "../pages/Reports/ScheduledReports";
+import DataQuality from "../pages/DataQuality/DataQuality";
+
 export default function AppRoutes() {
     return (
         
@@ -119,7 +121,7 @@ export default function AppRoutes() {
                     <Route path="/audit-logs" element={<AuditLogs />} />
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/reports/scheduled" element={<ScheduledReports />} />
-
+                    <Route path="/data-quality" element={<DataQuality />} />
                 </Route>
 
             </Routes>
