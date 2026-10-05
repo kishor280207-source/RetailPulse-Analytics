@@ -6,6 +6,7 @@ import {
     getImportHistory,
     getImportErrors,
 } from "../../api/importApi";
+import { getImportStatus, downloadTemplate, cancelImport } from "../../api/importApi";
 import type {
     PreviewResult,
     ValidationResult,
@@ -26,7 +27,7 @@ const extractErrorMessage = (err: any): string => {
 
     return "Something went wrong. Please try again.";
 };
-type ImportType = "Products" | "Customers" | "Sales";
+type ImportType = "Products" | "Customers" | "Sales" | "Inventory";
 type Stage = "idle" | "previewing" | "validating" | "processing" | "done";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -82,7 +83,8 @@ const DataImport = () => {
     const [historyLoading, setHistoryLoading] = useState(true);
     const [historyError, setHistoryError] = useState("");
     const [downloadingId, setDownloadingId] = useState<number | null>(null);
-
+    const [currentImportId, setCurrentImportId] = useState<number | null>(null);
+    const [liveStatus, setLiveStatus] = useState<string>("");
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const loadHistory = async () => {
@@ -164,19 +166,33 @@ const DataImport = () => {
     };
 
     const handleImport = async () => {
-        if (!file) return;
-        setStage("processing");
-        setError("");
-        try {
-            const response = await processImport(file, importType);
-            setResult(response.data);
-            setStage("done");
-            loadHistory(); // refresh history to show the new import
-        } catch (err: any) {
-            setError(extractErrorMessage(err));
-            setStage("idle");
-        }
-    };
+    if (!file) return;
+    setStage("processing");
+    setError("");
+    try {
+        const response = await processImport(file, importType);
+        const importId = response.data.import_id;
+        setCurrentImportId(importId);
+        setLiveStatus("Processing");
+
+        const interval = setInterval(async () => {
+            const statusResponse = await getImportStatus(importId);
+            const status = statusResponse.data.status;
+            setLiveStatus(status);
+
+            if (["Completed", "Completed with Errors", "Failed", "Cancelled"].includes(status)) {
+                clearInterval(interval);
+                setResult(statusResponse.data);
+                setStage("done");
+                setCurrentImportId(null);
+                loadHistory();
+            }
+        }, 2000);
+      } catch (err: any) {
+        setError(extractErrorMessage(err));
+        setStage("idle");
+     }
+   };
 
     const handleDownloadFailed = async (item: ImportHistoryItem) => {
         setDownloadingId(item.id);
@@ -241,6 +257,25 @@ const DataImport = () => {
                 </div>
             )}
 
+            {liveStatus && stage === "processing" && (
+                <div style={{ background: "#eff6ff", padding: "12px", marginBottom: "20px", borderRadius: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                   <span><strong>Status:</strong> {liveStatus}...</span>
+                   {currentImportId && (
+                      <button
+                         onClick={async () => {
+                           await cancelImport(currentImportId);
+                           setStage("idle");
+                           setCurrentImportId(null);
+                           loadHistory();
+                    }}
+                    style={{ ...selectStyle, color: "#dc2626" }}
+                >
+                    Cancel Import
+                </button>
+                 )}
+               </div> 
+            )}
+
             <div style={sectionStyle}>
                 <h3 style={{ marginTop: 0 }}>1. Select Import Type</h3>
                 <select
@@ -254,6 +289,7 @@ const DataImport = () => {
                     <option value="Products">Products</option>
                     <option value="Customers">Customers</option>
                     <option value="Sales">Sales Transactions</option>
+                    <option value="Inventory">Inventory</option>
                 </select>
             </div>
 
@@ -261,6 +297,20 @@ const DataImport = () => {
                 <h3 style={{ marginTop: 0 }}>2. Upload CSV File</h3>
 
                 <input ref={fileInputRef} type="file" accept=".csv" onChange={handleFileSelect} />
+                <button
+                    onClick={async () => {
+                      const response = await downloadTemplate(importType);
+                      const url = URL.createObjectURL(response.data);
+                      const link = document.createElement("a");
+                      link.href = url;
+                      link.download = `${importType.toLowerCase()}_template.csv`;
+                      link.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    style={selectStyle}
+                >
+                Download Template
+                </button>
 
                 {fileError && <p style={{ color: "red", marginTop: "8px" }}>{fileError}</p>}
 
@@ -398,6 +448,7 @@ const DataImport = () => {
                     <p>Successfully Added: <strong>{result.successful_records}</strong></p>
                     <p>Duplicates: <strong>{result.duplicate_records}</strong></p>
                     <p>Failed: <strong>{result.failed_records}</strong></p>
+                    <p>Skipped: <strong>{result.skipped_records}</strong></p>
                 </div>
             )}
 
@@ -423,7 +474,9 @@ const DataImport = () => {
                                     <th style={{ textAlign: "right", padding: "8px", borderBottom: "1px solid #ddd" }}>Success</th>
                                     <th style={{ textAlign: "right", padding: "8px", borderBottom: "1px solid #ddd" }}>Failed</th>
                                     <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #ddd" }}>Status</th>
+                                    <th style={{ textAlign: "right", padding: "8px", borderBottom: "1px solid #ddd" }}>Duration</th>
                                     <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #ddd" }}>Actions</th>
+                                    <th style={{ textAlign: "right", padding: "8px", borderBottom: "1px solid #eee" }}>Skipped</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -446,8 +499,13 @@ const DataImport = () => {
                                                 borderRadius: "12px",
                                                 fontSize: "12px",
                                             }}>
+                                                
                                                 {item.status}
                                             </span>
+                                        </td>
+                                        <td style={{ textAlign: "right", padding: "8px", borderBottom: "1px solid #eee" }}>{item.skipped_records}</td>
+                                        <td style={{ textAlign: "right", padding: "8px", borderBottom: "1px solid #eee" }}>
+                                            {item.processing_duration_seconds ? `${item.processing_duration_seconds}s` : "-"}
                                         </td>
                                         <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
                                             {item.failed_records > 0 && (

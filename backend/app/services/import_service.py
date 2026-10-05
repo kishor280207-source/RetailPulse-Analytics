@@ -15,11 +15,16 @@ from app.repositories.sales_repository import generate_invoice_number
 import re
 from datetime import datetime as dt
 from app.services.notification_service import create_notification
+import time
+import threading
+from app.models.inventory import Inventory
+from app.services.audit_service import create_audit_log
 
 REQUIRED_COLUMNS = {
     "Products": ["Product Name", "SKU", "Category", "Unit Price", "Stock Quantity"],
     "Customers": ["Name", "Email", "Phone"],
     "Sales": ["Customer", "Product", "Quantity", "Unit Price", "Sale Date"],
+    "Inventory": ["SKU", "Current Stock", "Reorder Level"],
 }
 
 
@@ -158,6 +163,55 @@ def _validate_sales_row(row: dict, db: Session, company_id: int):
         dt.strptime(sale_date, "%Y-%m-%d")
     except ValueError:
         return "invalid", "Sale date must be in YYYY-MM-DD format."
+    
+    dedup_key = f"{customer.id}:{product.id}:{quantity}:{sale_date}"
+    if dedup_key in seen_sales_keys:
+        return "duplicate", "Duplicate sale (same customer, product, quantity, and date) appears more than once in this file."
+
+    existing_sale = (
+        db.query(Sale)
+        .join(SaleItem, SaleItem.sale_id == Sale.id)
+        .filter(
+            Sale.company_id == company_id,
+            Sale.customer_id == customer.id,
+            SaleItem.product_id == product.id,
+            SaleItem.quantity == quantity,
+            func.date(Sale.sale_date) == sale_date,
+        )
+        .first()
+    )
+    if existing_sale:
+        return "duplicate", f"A matching sale already exists (invoice {existing_sale.invoice_number})."
+    
+    return "valid", None
+
+def _validate_inventory_row(row: dict, db: Session, company_id: int, seen_skus: set):
+    sku = str(row.get("SKU", "")).strip()
+    current_stock = row.get("Current Stock", "")
+    reorder_level = row.get("Reorder Level", "")
+
+    if not sku:
+        return "invalid", "SKU is required."
+
+    product = db.query(Product).filter(Product.company_id == company_id, Product.sku == sku).first()
+    if not product:
+        return "invalid", f"No product found with SKU '{sku}'."
+
+    try:
+        current_stock = int(current_stock)
+        if current_stock < 0:
+            return "invalid", "Current stock cannot be negative."
+    except (ValueError, TypeError):
+        return "invalid", "Current stock must be a valid whole number."
+
+    if reorder_level:
+        try:
+            int(reorder_level)
+        except (ValueError, TypeError):
+            return "invalid", "Reorder level must be a valid whole number."
+
+    if sku in seen_skus:
+        return "duplicate", "Duplicate SKU within this file - only the first occurrence will be applied."
 
     return "valid", None
 
@@ -167,14 +221,15 @@ def validate_rows(df: pd.DataFrame, import_type: str, db: Session, company_id: i
     seen_skus = set()
     seen_emails = set()
     seen_phones = set()
+    seen_sales_keys = set()
 
     for index, row in df.iterrows():
         row_dict = row.to_dict()
-        row_number = index + 2 
+        row_number = index + 2
 
         if import_type == "Products":
             status, reason = _validate_products_row(row_dict, db, company_id, seen_skus)
-            if status in ("valid",):
+            if status == "valid":
                 seen_skus.add(str(row_dict.get("SKU", "")).strip())
         elif import_type == "Customers":
             status, reason = _validate_customers_row(row_dict, db, company_id, seen_emails, seen_phones)
@@ -182,7 +237,17 @@ def validate_rows(df: pd.DataFrame, import_type: str, db: Session, company_id: i
                 seen_emails.add(str(row_dict.get("Email", "")).strip())
                 seen_phones.add(str(row_dict.get("Phone", "")).strip())
         elif import_type == "Sales":
-            status, reason = _validate_sales_row(row_dict, db, company_id)
+            status, reason = _validate_sales_row(row_dict, db, company_id, seen_sales_keys)
+            if status == "valid":
+                customer = db.query(Customer).filter(Customer.company_id == company_id, Customer.full_name.ilike(str(row_dict.get("Customer", "")).strip())).first()
+                product = db.query(Product).filter(Product.company_id == company_id, Product.name.ilike(str(row_dict.get("Product", "")).strip())).first()
+                if customer and product:
+                    key = f"{customer.id}:{product.id}:{row_dict.get('Quantity')}:{str(row_dict.get('Sale Date', '')).strip()}"
+                    seen_sales_keys.add(key)
+        elif import_type == "Inventory":
+            status, reason = _validate_inventory_row(row_dict, db, company_id, seen_skus)
+            if status == "valid":
+                seen_skus.add(str(row_dict.get("SKU", "")).strip())
         else:
             status, reason = "invalid", f"Unknown import type: {import_type}"
 
@@ -205,6 +270,7 @@ def validate_rows(df: pd.DataFrame, import_type: str, db: Session, company_id: i
         "duplicate_records": duplicate,
         "rows": results,
     }
+
 def _insert_product_row(db: Session, company_id: int, row: dict):
     category = db.query(Category).filter(
         Category.company_id == company_id,
@@ -289,124 +355,208 @@ def _insert_sale_row(db: Session, company_id: int, user_id: int, row: dict):
     product.stock_quantity -= quantity
 
 
-def process_import(db: Session, company_id: int, user_id: int, import_type: str, filename: str, df: pd.DataFrame):
-    """
-    TRANSACTION STRATEGY (documented per spec requirement #17):
-    - Every row is validated BEFORE any database write. Rows that fail
-      business-rule validation (missing fields, bad values, duplicates)
-      are never inserted - they're recorded as failed/duplicate from the
-      start and don't affect the transaction at all.
-    - All rows that pass validation are inserted together as a SINGLE
-      database transaction. If an unexpected error occurs partway through
-      (e.g. a database constraint violation we didn't anticipate), the
-      ENTIRE batch is rolled back - no partial data is left in the
-      database. The import is marked "Failed" and the admin can retry.
-    - This is an all-or-nothing strategy for the valid-rows batch,
-      combined with pre-filtering of invalid/duplicate rows. It favors
-      data integrity over partial success.
-    """
-    validation = validate_rows(df, import_type, db, company_id)
+def _run_import_core(db: Session, company_id: int, user_id: int, user_name: str, import_type: str, filename: str, df: pd.DataFrame, import_id: int):
+    history = db.query(ImportHistory).filter(ImportHistory.id == import_id).first()
 
-    import_history = ImportHistory(
-        company_id=company_id,
-        import_type=import_type,
-        filename=filename,
-        uploaded_by=user_id,
-        total_records=validation["total_records"],
-        status="Processing",
-    )
-    db.add(import_history)
+   
+    history.status = "Validating"
     db.commit()
-    db.refresh(import_history)
+
+    validation = validate_rows(df, import_type, db, company_id)
+    history.total_records = validation["total_records"]
+    db.commit()
 
     valid_rows = [r for r in validation["rows"] if r["status"] == "valid"]
     problem_rows = [r for r in validation["rows"] if r["status"] != "valid"]
 
+    
+    history.status = "Processing"
+    db.commit()
+
+    inserted_count = 0
+    skipped_count = 0
+    was_cancelled = False
+
     try:
         for row in valid_rows:
+           
+            db.refresh(history)
+            if history.status == "Cancelled":
+                was_cancelled = True
+                skipped_count = len(valid_rows) - inserted_count
+                break
+
             if import_type == "Products":
                 _insert_product_row(db, company_id, row["data"])
             elif import_type == "Customers":
                 _insert_customer_row(db, company_id, row["data"])
             elif import_type == "Sales":
                 _insert_sale_row(db, company_id, user_id, row["data"])
+            elif import_type == "Inventory":
+                _update_inventory_row(db, company_id, row["data"])
+
+            inserted_count += 1
 
         db.commit()
 
-        import_history.successful_records = len(valid_rows)
-        import_history.failed_records = len([r for r in problem_rows if r["status"] == "invalid"])
-        import_history.duplicate_records = len([r for r in problem_rows if r["status"] == "duplicate"])
-        import_history.status = (
-            "Completed" if not problem_rows else "Completed with Errors"
-        )
+        if was_cancelled:
+            history.successful_records = inserted_count
+            history.skipped_records = skipped_count
+            history.failed_records = len([r for r in problem_rows if r["status"] == "invalid"])
+            history.duplicate_records = len([r for r in problem_rows if r["status"] == "duplicate"])
+           
+        else:
+            history.successful_records = inserted_count
+            history.skipped_records = 0
+            history.failed_records = len([r for r in problem_rows if r["status"] == "invalid"])
+            history.duplicate_records = len([r for r in problem_rows if r["status"] == "duplicate"])
+            history.status = "Completed" if not problem_rows else "Completed with Errors"
 
-    except Exception as e:
+    except Exception:
         import traceback
-        print("=" * 60, flush=True)
-        print("IMPORT ERROR:", flush=True)
-        traceback.print_exc()
-        print("=" * 60, flush=True)
+        traceback.print_exc()  
         db.rollback()
-        import_history.successful_records = 0
-        import_history.failed_records = validation["total_records"]
-        import_history.duplicate_records = 0
-        import_history.status = "Failed"
-        problem_rows = validation["rows"]  
+        history.successful_records = 0
+        history.skipped_records = 0
+        history.failed_records = validation["total_records"]
+        history.duplicate_records = 0
+        history.status = "Failed"
+        problem_rows = validation["rows"]
 
-    import_history.completed_at = datetime.utcnow()
+    history.completed_at = datetime.utcnow()
     db.commit()
 
     for row in problem_rows:
         error_entry = ImportErrorModel(
-            import_id=import_history.id,
+            import_id=history.id,
             row_number=row["row_number"],
-            error_reason=row["reason"] or "Import failed due to a database error.",
+            error_reason=row["reason"] or "Import failed due to an internal error.",
             row_data=json.dumps(row["data"]),
         )
         db.add(error_entry)
+    db.commit()
 
-        db.commit()
-        if import_history.status == "Completed":
-           create_notification(
-            db=db,
-            company_id=company_id,
-            type="ImportCompleted",
-            priority="Low",
+    
+    if history.status == "Completed":
+        create_notification(
+            db=db, company_id=company_id, type="ImportCompleted", priority="Low",
             title="Import Completed",
-            message=f"{import_type} import '{filename}' completed successfully - {import_history.successful_records} records added.",
-            resource_type="Import",
-            resource_id=import_history.id,
+            message=f"{import_type} import '{filename}' completed - {history.successful_records} records added.",
+            resource_type="Import", resource_id=history.id,
+            dedup_key=f"import_event:{history.id}:completed",
         )
-        elif import_history.status == "Completed with Errors":
-            create_notification(
-            db=db,
-            company_id=company_id,
-            type="ImportCompleted",
-            priority="Medium",
+    elif history.status == "Completed with Errors":
+        create_notification(
+            db=db, company_id=company_id, type="ImportCompleted", priority="Medium",
             title="Import Completed with Errors",
-            message=f"{import_type} import '{filename}' finished with {import_history.failed_records} failed and {import_history.duplicate_records} duplicate records.",
-            resource_type="Import",
-            resource_id=import_history.id,
+            message=f"{import_type} import '{filename}' finished with {history.failed_records} failed and {history.duplicate_records} duplicate records.",
+            resource_type="Import", resource_id=history.id,
+            dedup_key=f"import_event:{history.id}:completed_with_errors",
         )
-        else:
-            create_notification(
-            db=db,
-            company_id=company_id,
-            type="ImportFailed",
-            priority="High",
+    elif history.status == "Cancelled":
+        create_notification(
+            db=db, company_id=company_id, type="ImportFailed", priority="Medium",
+            title="Import Cancelled",
+            message=f"{import_type} import '{filename}' was cancelled - {history.successful_records} records added before cancellation, {history.skipped_records} skipped.",
+            resource_type="Import", resource_id=history.id,
+            dedup_key=f"import_event:{history.id}:cancelled",
+        )
+    else:
+        create_notification(
+            db=db, company_id=company_id, type="ImportFailed", priority="High",
             title="Import Failed",
             message=f"{import_type} import '{filename}' failed to process.",
-            resource_type="Import",
-            resource_id=import_history.id,
+            resource_type="Import", resource_id=history.id,
+            dedup_key=f"import_event:{history.id}:failed",
         )
 
+    
+    create_audit_log(
+        db=db, company_id=company_id, user_id=user_id, user_name=user_name,
+        action="IMPORT", resource_type="Import", resource_id=history.id,
+        description=f"Import {history.status}: {history.successful_records} succeeded, {history.failed_records} failed, {history.duplicate_records} duplicate, {history.skipped_records} skipped",
+    )
+
+    
+    if import_type in ("Inventory", "Products") and history.successful_records > 0:
+        from app.services.reconciliation_service import run_reconciliation
+        try:
+            run_reconciliation(db, company_id, user_id, f"System (triggered by import {history.id})")
+        except Exception:
+            pass
+
     return {
-        "import_id": import_history.id,
-        "total_records": import_history.total_records,
-        "successful_records": import_history.successful_records,
-        "failed_records": import_history.failed_records,
-        "duplicate_records": import_history.duplicate_records,
-        "status": import_history.status,
+        "import_id": history.id,
+        "total_records": history.total_records,
+        "successful_records": history.successful_records,
+        "failed_records": history.failed_records,
+        "duplicate_records": history.duplicate_records,
+        "skipped_records": history.skipped_records,
+        "status": history.status,
+    }
+
+
+def process_import_async(db_session_factory, company_id: int, user_id: int, user_name: str, import_type: str, filename: str, df: pd.DataFrame, import_id: int):
+    """
+    Runs on a background thread so the triggering HTTP request returns
+    immediately. HONEST LIMITATION: in-process threading, not a real job
+    queue (Celery/RQ) - works at this project's scale, single server,
+    doesn't survive a restart mid-import, doesn't scale across instances.
+    """
+    db = db_session_factory()
+    try:
+        start_time = time.time()
+        _run_import_core(db, company_id, user_id, user_name, import_type, filename, df, import_id)
+        duration = time.time() - start_time
+
+        history = db.query(ImportHistory).filter(ImportHistory.id == import_id).first()
+        if history:
+            history.processing_duration_seconds = round(duration, 2)
+            db.commit()
+    finally:
+        db.close()
+
+
+def start_import(db: Session, db_session_factory, company_id: int, user_id: int, user_name: str, import_type: str, filename: str, df: pd.DataFrame):
+    history = ImportHistory(
+        company_id=company_id,
+        import_type=import_type,
+        filename=filename,
+        uploaded_by=user_id,
+        total_records=len(df),
+        status="Processing",
+    )
+    db.add(history)
+    db.commit()
+    db.refresh(history)
+
+    create_audit_log(
+        db=db, company_id=company_id, user_id=user_id, user_name=user_name,
+        action="IMPORT", resource_type="Import", resource_id=history.id,
+        description=f"Import started: {import_type} from {filename}",
+    )
+
+    thread = threading.Thread(
+        target=process_import_async,
+        args=(db_session_factory, company_id, user_id, user_name, import_type, filename, df, history.id),
+    )
+    thread.start()
+
+    return {"import_id": history.id, "status": "Processing"}
+
+
+def get_import_status(db: Session, company_id: int, import_id: int):
+    history = db.query(ImportHistory).filter(ImportHistory.id == import_id, ImportHistory.company_id == company_id).first()
+    if not history:
+        raise ValueError("Import not found.")
+    return {
+        "import_id": history.id,
+        "status": history.status,
+        "total_records": history.total_records,
+        "successful_records": history.successful_records,
+        "failed_records": history.failed_records,
+        "duplicate_records": history.duplicate_records,
+        "processing_duration_seconds": history.processing_duration_seconds,
     }
 
 def get_import_history(db: Session, company_id: int):
@@ -429,6 +579,8 @@ def get_import_history(db: Session, company_id: int):
             "failed_records": r.failed_records,
             "duplicate_records": r.duplicate_records,
             "status": r.status,
+            "processing_duration_seconds": r.processing_duration_seconds,
+            "skipped_records": r.skipped_records,
         }
         for r in records
     ]
@@ -456,6 +608,8 @@ def get_import_detail(db: Session, company_id: int, import_id: int):
         "failed_records": record.failed_records,
         "duplicate_records": record.duplicate_records,
         "status": record.status,
+        "processing_duration_seconds": record.processing_duration_seconds,
+        "skipped_records": record.skipped_records,
     }
 
 

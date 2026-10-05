@@ -29,6 +29,7 @@ export interface ImportResult {
     failed_records: number;
     duplicate_records: number;
     status: string;
+    skipped_records?: number;
 }
 
 export interface ImportHistoryItem {
@@ -42,6 +43,8 @@ export interface ImportHistoryItem {
     failed_records: number;
     duplicate_records: number;
     status: string;
+    skipped_records?: number;
+    processing_duration_seconds?: number;
 }
 
 export interface ImportErrorItem {
@@ -76,3 +79,12 @@ export const getImportHistory = () =>
 
 export const getImportErrors = (importId: number) =>
     api.get<ImportErrorItem[]>(`/import/${importId}/errors`);
+
+export const getImportStatus = (importId: number) =>
+    api.get("/import/" + importId + "/status");
+
+export const downloadTemplate = (importType: string) =>
+    api.get("/import/template/" + importType, { responseType: "blob" });
+
+export const cancelImport = (importId: number) =>
+    api.post("/import/" + importId + "/cancel");
