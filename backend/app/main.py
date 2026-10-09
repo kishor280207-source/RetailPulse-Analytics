@@ -39,6 +39,7 @@ from app.api.audit_logs import router as audit_logs_router
 from app.api.notification import router as notifications_router
 from app.api.reports import router as reports_router
 from app.api.data_quality import router as data_quality_router
+from app.api.workflow import router as workflow_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -164,6 +165,10 @@ app.include_router(
     prefix="/data-quality", 
     tags=["Data Quality"]
 )
+app.include_router(
+    workflow_router, 
+    prefix="/workflow", 
+    tags=["Workflow & Approvals"])
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

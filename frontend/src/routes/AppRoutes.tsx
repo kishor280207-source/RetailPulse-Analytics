@@ -30,7 +30,9 @@ import AuditLogs from "../pages/AuditLogs/AuditLogs";
 import Reports from "../pages/Reports/Reports";
 import ScheduledReports from "../pages/Reports/ScheduledReports";
 import DataQuality from "../pages/DataQuality/DataQuality";
-
+import ApprovalQueue from "../pages/Workflow/ApprovalQueue";
+import MyRequests from "../pages/Workflow/MyRequests";
+import WorkflowConfigPage from "../pages/Workflow/WorkflowConfig";
 export default function AppRoutes() {
     return (
         
@@ -121,6 +123,9 @@ export default function AppRoutes() {
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/reports/scheduled" element={<ScheduledReports />} />
                     <Route path="/data-quality" element={<DataQuality />} />
+                    <Route path="/workflow/queue" element={<ApprovalQueue />} />
+                    <Route path="/workflow/my-requests" element={<MyRequests />} />
+                    <Route path="/workflow/config" element={<WorkflowConfigPage />} />
                 </Route>
 
             </Routes>

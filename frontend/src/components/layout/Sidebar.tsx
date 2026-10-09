@@ -22,6 +22,7 @@ import HistoryIcon from "@mui/icons-material/History";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import FactCheckIcon from "@mui/icons-material/FactCheck";
+import RuleIcon from "@mui/icons-material/Rule";
 
 const drawerWidth = 240;
 
@@ -96,6 +97,18 @@ const menuItems = [
   icon: <FactCheckIcon />,
   path: "/data-quality",
 },
+{ text: "Approval Queue", 
+  icon: <RuleIcon />, 
+  path: "/workflow/queue" 
+}
+,
+{ text: "My Requests", 
+  icon: <RuleIcon />, 
+  path: "/workflow/my-requests" 
+},
+{ text: "Workflow Config", 
+  icon: <RuleIcon />, 
+  path: "/workflow/config" },
 ];
 
 export default function Sidebar() {

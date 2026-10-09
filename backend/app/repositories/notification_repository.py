@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from app.models.notification import Notification
 from app.services.audit_service import create_audit_log
 
-ADMIN_ONLY_TYPES = ["StockoutRisk", "LowStock", "Overstock", "ImportCompleted", "ImportFailed"]
+ADMIN_ONLY_TYPES = ["StockoutRisk", "LowStock", "Overstock", "ImportCompleted", "ImportFailed", "ApprovalRequest"]
 
 
 def get_notifications(

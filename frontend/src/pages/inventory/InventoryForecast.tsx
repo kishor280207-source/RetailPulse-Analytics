@@ -21,6 +21,7 @@ import {
     ResponsiveContainer,
     ReferenceLine,
 } from "recharts";
+import { createRequest } from "../../api/workflowApi";
 
 interface ProductOption {
     id: number;
@@ -496,6 +497,24 @@ const InventoryForecast = () => {
                                     <> Recommended reorder quantity: <strong>{recommendation.recommended_reorder_quantity}</strong> units.</>
                                 )}
                             </div>
+                            <button
+                                onClick={async () => {
+                                    const newStock = prompt("Requested stock quantity:", String(recommendation?.recommended_reorder_quantity ?? ""));
+                                    const reason = prompt("Reason for this adjustment:");
+                                    if (!newStock || !reason) return;
+                                    await createRequest({
+                                       request_type: "StockAdjustment",
+                                       related_record_id: selectedProductId!,
+                                       requested_values: { stock_quantity: Number(newStock) },
+                                       reason,
+                                    });
+                                    alert("Stock adjustment request susmitted for approval.");
+                                }}
+                                style={{ padding: "8px 16px", borderRadius: "5px", border: "1px solid #2563eb", background: "#2563eb", color: "#fff", cursor: "pointer" }}
+                            >
+                                  Request Stock Adjustment
+                            </button>
+                            
                         </>
                     ) : null}
 
@@ -532,6 +551,7 @@ const InventoryForecast = () => {
                             </LineChart>
                         </ResponsiveContainer>
                     )}
+                    
                 </div>
             )}
         </div>
