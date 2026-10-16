@@ -19,6 +19,8 @@ import time
 import threading
 from app.models.inventory import Inventory
 from app.services.audit_service import create_audit_log
+from app.repositories import monitoring_repository as monitoring_repo
+
 
 REQUIRED_COLUMNS = {
     "Products": ["Product Name", "SKU", "Category", "Unit Price", "Stock Quantity"],
@@ -496,7 +498,7 @@ def _run_import_core(db: Session, company_id: int, user_id: int, user_name: str,
     }
 
 
-def process_import_async(db_session_factory, company_id: int, user_id: int, user_name: str, import_type: str, filename: str, df: pd.DataFrame, import_id: int):
+def process_import_async(db_session_factory, company_id: int, user_id: int, user_name: str, import_type: str, filename: str, df: pd.DataFrame, import_id: int, job_id: int):
     """
     Runs on a background thread so the triggering HTTP request returns
     immediately. HONEST LIMITATION: in-process threading, not a real job
@@ -513,6 +515,14 @@ def process_import_async(db_session_factory, company_id: int, user_id: int, user
         if history:
             history.processing_duration_seconds = round(duration, 2)
             db.commit()
+
+        monitoring_repo.mark_job_completed(db, job_id, {
+            "import_id": import_id,
+            "total_records": len(df),
+        })
+    except Exception as e:
+        monitoring_repo.mark_job_failed(db, job_id, str(e)[:500])
+        raise
     finally:
         db.close()
 
@@ -536,9 +546,16 @@ def start_import(db: Session, db_session_factory, company_id: int, user_id: int,
         description=f"Import started: {import_type} from {filename}",
     )
 
+    job = monitoring_repo.create_job(
+        db, job_type="DataImport", triggered_by=user_id, company_id=company_id,
+        related_resource_type="import_history", related_resource_id=history.id,
+        idempotency_key=f"import-{company_id}-{filename}-{history.id}",
+    )
+    monitoring_repo.mark_job_running(db, job.id)
+
     thread = threading.Thread(
         target=process_import_async,
-        args=(db_session_factory, company_id, user_id, user_name, import_type, filename, df, history.id),
+        args=(db_session_factory, company_id, user_id, user_name, import_type, filename, df, history.id, job.id),
     )
     thread.start()
 

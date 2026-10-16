@@ -33,6 +33,12 @@ import DataQuality from "../pages/DataQuality/DataQuality";
 import ApprovalQueue from "../pages/Workflow/ApprovalQueue";
 import MyRequests from "../pages/Workflow/MyRequests";
 import WorkflowConfigPage from "../pages/Workflow/WorkflowConfig";
+import SystemHealth from "../pages/Monitoring/Systemhealth.tsx";
+import ApiPerformanceMonitor from "../pages/Monitoring/Apiperformancemonitor.tsx";
+import BackgroundJobs from "../pages/Monitoring/Backgroundjobs.tsx";
+import SystemErrorsIncidents from "../pages/Monitoring/Systemerrorsincidents.tsx";
+
+
 export default function AppRoutes() {
     return (
         
@@ -126,6 +132,11 @@ export default function AppRoutes() {
                     <Route path="/workflow/queue" element={<ApprovalQueue />} />
                     <Route path="/workflow/my-requests" element={<MyRequests />} />
                     <Route path="/workflow/config" element={<WorkflowConfigPage />} />
+                    <Route path="/monitoring/health" element={<SystemHealth />} />
+                    <Route path="/monitoring/api-performance" element={<ApiPerformanceMonitor />} />
+                    <Route path="/monitoring/jobs" element={<BackgroundJobs />} />
+                    <Route path="/monitoring/errors" element={<SystemErrorsIncidents />} />
+
                 </Route>
 
             </Routes>

@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from app.models.data_quality_issue import DataQualityIssue
 from app.models.reconciliation_run import ReconciliationRun
 from app.services.reconciliation_checks import ALL_CHECKS
+from app.utils.monitoring_job_tracker import JobTracker
 
 def _record_issue_if_new(db: Session, company_id: int, run_id: int, issue_data: dict):
     """
@@ -41,8 +42,10 @@ def _record_issue_if_new(db: Session, company_id: int, run_id: int, issue_data: 
     db.add(issue)
     return True
 
+
+
 def run_reconciliation(db: Session, company_id: int, user_id: int, user_name: str):
-    
+
     run = ReconciliationRun(
         company_id=company_id,
         triggered_by=user_id,
@@ -53,31 +56,41 @@ def run_reconciliation(db: Session, company_id: int, user_id: int, user_name: st
     db.commit()
     db.refresh(run)
 
-    total_checked = 0
-    total_new_issues = 0
-    failed_checks = 0
+    with JobTracker(
+        db, "Reconciliation", user_id, company_id,
+        related_resource_type="reconciliation_run", related_resource_id=run.id,
+    ) as tracker:
+        total_checked = 0
+        total_new_issues = 0
+        failed_checks = 0
 
-    for check_fn in ALL_CHECKS:
-        try:
-            found_issues, checked_count = check_fn(db, company_id)
-            total_checked += checked_count
+        for check_fn in ALL_CHECKS:
+            try:
+                found_issues, checked_count = check_fn(db, company_id)
+                total_checked += checked_count
 
-            for issue_data in found_issues:
-               if _record_issue_if_new(db, company_id, run.id, issue_data):
-                   total_new_issues += 1
+                for issue_data in found_issues:
+                    if _record_issue_if_new(db, company_id, run.id, issue_data):
+                        total_new_issues += 1
 
-        except Exception:
-            failed_checks += 1
+            except Exception:
+                failed_checks += 1
 
-    db.commit()
+        db.commit()
 
-    run.records_checked = total_checked
-    run.issues_detected = total_new_issues
-    run.failed_checks = failed_checks
-    run.status = "Failed" if failed_checks == len(ALL_CHECKS) else ("Completed with Issues" if total_new_issues > 0 else "Completed")
-    run.completed_at = datetime.utcnow()
-    db.commit()
-    db.refresh(run)
+        run.records_checked = total_checked
+        run.issues_detected = total_new_issues
+        run.failed_checks = failed_checks
+        run.status = "Failed" if failed_checks == len(ALL_CHECKS) else ("Completed with Issues" if total_new_issues > 0 else "Completed")
+        run.completed_at = datetime.utcnow()
+        db.commit()
+        db.refresh(run)
+
+        tracker.set_result({
+            "records_checked": total_checked,
+            "issues_detected": total_new_issues,
+            "failed_checks": failed_checks,
+        })
 
     return _serialize_run(run)
 

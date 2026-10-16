@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 from app.models.report_history import ReportHistory
 from app.models.scheduled_report import ScheduledReport
+from app.utils.monitoring_job_tracker import JobTracker
 
 
 def get_report_history(db: Session, company_id: int, page: int = 1, limit: int = 20):
@@ -110,7 +111,6 @@ def delete_schedule(db: Session, company_id: int, schedule_id: int):
     db.commit()
     return {"message": "Schedule deleted."}
 
-
 def run_schedule_now(db: Session, company_id: int, user_id: int, user_name: str, schedule_id: int):
     from app.services.report_service import generate_report
 
@@ -121,11 +121,21 @@ def run_schedule_now(db: Session, company_id: int, user_id: int, user_name: str,
 
     filters = json.loads(schedule.filters) if schedule.filters else {}
 
-    try:
-        generate_report(db, company_id, user_id, user_name, schedule.report_type, filters, schedule.export_format)
-        schedule.last_run_status = "Success"
-    except Exception:
-        schedule.last_run_status = "Failed"
+    with JobTracker(
+        db, "ScheduledReport", user_id, company_id,
+        related_resource_type="scheduled_report", related_resource_id=schedule_id,
+        idempotency_key=f"report-{schedule_id}-{datetime.utcnow().date()}",
+    ) as tracker:
+        try:
+            generate_report(db, company_id, user_id, user_name, schedule.report_type, filters, schedule.export_format)
+            schedule.last_run_status = "Success"
+            tracker.set_result({"report_type": schedule.report_type})
+        except Exception as e:
+            schedule.last_run_status = "Failed"
+            schedule.last_run_at = datetime.utcnow()
+            schedule.next_run_at = _calculate_next_run(schedule.frequency, schedule.execution_time)
+            db.commit()
+            raise  # JobTracker marks the job Failed, then re-raises
 
     schedule.last_run_at = datetime.utcnow()
     schedule.next_run_at = _calculate_next_run(schedule.frequency, schedule.execution_time)

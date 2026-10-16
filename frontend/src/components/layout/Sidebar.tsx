@@ -23,6 +23,11 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import FactCheckIcon from "@mui/icons-material/FactCheck";
 import RuleIcon from "@mui/icons-material/Rule";
+import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
+import SpeedIcon from "@mui/icons-material/Speed";
+import SyncProblemIcon from "@mui/icons-material/SyncProblem";
+import ReportProblemIcon from "@mui/icons-material/ReportProblem";
+
 
 const drawerWidth = 240;
 
@@ -109,6 +114,26 @@ const menuItems = [
 { text: "Workflow Config", 
   icon: <RuleIcon />, 
   path: "/workflow/config" },
+{
+  text: "System Health",
+  icon: <MonitorHeartIcon />,
+  path: "/monitoring/health",
+},
+{
+  text: "API Performance",
+  icon: <SpeedIcon />,
+  path: "/monitoring/api-performance",
+},
+{
+  text: "Background Jobs",
+  icon: <SyncProblemIcon />,
+  path: "/monitoring/jobs",
+},
+{
+  text: "Errors & Incidents",
+  icon: <ReportProblemIcon />,
+  path: "/monitoring/errors",
+},  
 ];
 
 export default function Sidebar() {

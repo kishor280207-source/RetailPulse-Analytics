@@ -40,6 +40,7 @@ from app.api.notification import router as notifications_router
 from app.api.reports import router as reports_router
 from app.api.data_quality import router as data_quality_router
 from app.api.workflow import router as workflow_router
+from app.api import monitoring, health
 
 Base.metadata.create_all(bind=engine)
 
@@ -169,11 +170,14 @@ app.include_router(
     workflow_router, 
     prefix="/workflow", 
     tags=["Workflow & Approvals"])
+app.include_router(health.router)       
+app.include_router(monitoring.router, prefix="/monitoring")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
     ],
     allow_credentials=True,
     allow_methods=["*"],
