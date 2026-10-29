@@ -22,6 +22,7 @@ REQUEST_TYPES = [
     "ProductPriceChange",
     "CustomerInfoChange",
     "InventoryImportApproval",
+    "AccessRequest",
 ]
 
 ALLOWED_TRANSITIONS = {
@@ -127,6 +128,13 @@ def _snapshot_current_values(db: Session, company_id: int, request_type: str, re
         if not customer:
             raise HTTPException(status_code=404, detail="Customer not found.")
         return {"full_name": customer.full_name, "email": customer.email, "phone": customer.phone}, "Customer", customer.full_name
+
+    if request_type == "AccessRequest":
+        from app.models.user import User
+        user = db.query(User).filter(User.id == related_record_id, User.company_id == company_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found.")
+        return {"current_role": user.role}, "User", user.name
 
     raise HTTPException(status_code=400, detail=f"Unsupported request type for this creation path: {request_type}")
 
@@ -297,6 +305,57 @@ def _apply_customer_change(db: Session, req: WorkflowRequest, requested: dict):
         if field in requested:
             setattr(customer, field, requested[field])
 
+def _apply_access_request(db: Session, req: WorkflowRequest, requested: dict):
+    """
+    Applies an approved AccessRequest: changes users.role to the
+    requested role. Runs inside _finalize_approval's try/rollback
+    block exactly like every other _apply_* handler, so if the
+    last-Admin check below fails, the whole approval rolls back and
+    the request stays "Pending Approval" instead of being marked
+    Approved with no actual change applied.
+    """
+    from app.models.user import User
+    from app.models.role import Role
+    from app.models.user_role_history import UserRoleHistory
+    from app.models.governance_change_log import GovernanceChangeLog
+    from app.repositories.governance_repository import count_active_admins
+
+    user = db.query(User).filter(User.id == int(req.related_record_id), User.company_id == req.company_id).first()
+    if not user:
+        raise ValueError("User no longer exists.")
+
+    new_role = requested.get("requested_role")
+    if not new_role:
+        raise ValueError("No requested_role found on this request.")
+
+    role_row = db.query(Role).filter(Role.company_id == req.company_id, Role.role_name == new_role, Role.is_active == True).first()
+    if not role_row:
+        raise ValueError(f"Role '{new_role}' does not exist or is inactive.")
+
+    old_role = user.role
+
+    if old_role == "Admin" and new_role != "Admin":
+        remaining_admins = count_active_admins(db, req.company_id, exclude_user_id=user.id)
+        if remaining_admins < 1:
+            raise ValueError("Cannot approve: this user is the last active Admin for this company.")
+
+    user.role = new_role
+
+    db.add(UserRoleHistory(
+        company_id=req.company_id, user_id=user.id, user_name=user.name,
+        old_role=old_role, new_role=new_role,
+        changed_by=req.approved_by, changed_by_name=req.approved_by_name,
+        reason=req.reason, source="AccessRequest", workflow_request_id=req.id,
+    ))
+    db.add(GovernanceChangeLog(
+        company_id=req.company_id, change_type="RoleAssignment", target_type="User",
+        target_id=str(user.id), target_label=user.name,
+        old_value=old_role, new_value=new_role,
+        changed_by=req.approved_by, changed_by_name=req.approved_by_name,
+        reason=f"Approved access request #{req.id}",
+    ))
+            
+
 
 def _apply_inventory_import(db: Session, req: WorkflowRequest, requested: dict):
     """
@@ -340,6 +399,7 @@ def _apply_change(db: Session, req: WorkflowRequest):
         "ProductPriceChange": _apply_price_change,
         "CustomerInfoChange": _apply_customer_change,
         "InventoryImportApproval": _apply_inventory_import,
+        "AccessRequest": _apply_access_request,
     }
 
     handler = dispatch.get(req.request_type)

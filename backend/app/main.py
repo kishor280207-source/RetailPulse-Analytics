@@ -41,6 +41,7 @@ from app.api.reports import router as reports_router
 from app.api.data_quality import router as data_quality_router
 from app.api.workflow import router as workflow_router
 from app.api import monitoring, health
+from app.api import governance
 
 Base.metadata.create_all(bind=engine)
 
@@ -172,6 +173,7 @@ app.include_router(
     tags=["Workflow & Approvals"])
 app.include_router(health.router)       
 app.include_router(monitoring.router, prefix="/monitoring")
+app.include_router(governance.router, prefix="/governance")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

@@ -27,6 +27,12 @@ import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
 import SpeedIcon from "@mui/icons-material/Speed";
 import SyncProblemIcon from "@mui/icons-material/SyncProblem";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
+import DashboardCustomizeIcon from "@mui/icons-material/DashboardCustomize";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import GridViewIcon from "@mui/icons-material/GridView";
+import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
+import RuleFolderIcon from "@mui/icons-material/RuleFolder";
+import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
 
 
 const drawerWidth = 240;
@@ -134,6 +140,43 @@ const menuItems = [
   icon: <ReportProblemIcon />,
   path: "/monitoring/errors",
 },  
+{
+  text: "Governance Dashboard",
+  icon: <DashboardCustomizeIcon />,
+  path: "/governance/dashboard",
+},
+
+{
+  text: "Role Management",
+  icon:<AdminPanelSettingsIcon />,
+  path:"/governance/roles",
+},
+{
+  text: "Permission Matrix",
+  icon:<GridViewIcon />,
+  path:"/governance/permission-matrix",
+},
+{
+  text: "User Access Assignment" ,
+  icon:<PersonAddAlt1Icon />,
+  path:"/governance/user-access",
+},
+{
+  text: "Access Requests",
+  icon:<RuleFolderIcon />,
+  path:"/governance/access-requests",
+},
+{
+  text:"Access Review", 
+  icon:<FactCheckIcon />,
+  path:"/governance/access-review",
+},
+{
+  text: "Permission History",
+  icon:<HistoryEduIcon />,
+  path:"/governance/history",
+}
+
 ];
 
 export default function Sidebar() {

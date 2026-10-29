@@ -37,11 +37,17 @@ import SystemHealth from "../pages/Monitoring/Systemhealth.tsx";
 import ApiPerformanceMonitor from "../pages/Monitoring/Apiperformancemonitor.tsx";
 import BackgroundJobs from "../pages/Monitoring/Backgroundjobs.tsx";
 import SystemErrorsIncidents from "../pages/Monitoring/Systemerrorsincidents.tsx";
-
+import GovernanceDashboard from "../pages/Governance/GovernanceDashboard";
+import RoleManagement from "../pages/Governance/RoleManagement";
+import PermissionMatrix from "../pages/Governance/PermissionMatrix";
+import UserAccessAssignment from "../pages/Governance/UserAccessAssignment";
+import AccessRequests from "../pages/Governance/AccessRequests";
+import AccessReview from "../pages/Governance/AccessReview";
+import PermissionHistory from "../pages/Governance/PermissionHistory";
 
 export default function AppRoutes() {
     return (
-        
+         
             <Routes>
 
                 
@@ -136,7 +142,13 @@ export default function AppRoutes() {
                     <Route path="/monitoring/api-performance" element={<ApiPerformanceMonitor />} />
                     <Route path="/monitoring/jobs" element={<BackgroundJobs />} />
                     <Route path="/monitoring/errors" element={<SystemErrorsIncidents />} />
-
+                    <Route path="/governance/dashboard" element={<GovernanceDashboard />} />
+                    <Route path="/governance/roles" element={<RoleManagement />} />
+                    <Route path="/governance/permission-matrix" element={<PermissionMatrix />} />
+                    <Route path="/governance/user-access" element={<UserAccessAssignment />} />
+                    <Route path="/governance/access-requests" element={<AccessRequests />} />
+                    <Route path="/governance/access-review" element={<AccessReview />} />
+                    <Route path="/governance/history" element={<PermissionHistory />} />
                 </Route>
 
             </Routes>
