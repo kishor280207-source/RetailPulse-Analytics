@@ -31,9 +31,7 @@ def log_audit_action(db, user_id, company_id, user_name, action,
         description=description,
     )
 def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
-    """Only admins/managers can retry/cancel jobs, resolve incidents, or
-    change thresholds. Adjust the role check to match your actual role
-    names (e.g. 'Admin', 'Manager')."""
+    
     if current_user.get("role") not in ("Admin", "Manager"):
         raise HTTPException(status_code=403, detail="Not authorized for this action")
     return current_user

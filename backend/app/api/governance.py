@@ -127,15 +127,7 @@ def role_history(
 
 @router.post("/access-requests")
 def submit_access_request(data: dict, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
-    """
-    Any authenticated user can request a role for themselves. This
-    does NOT grant anything by itself - it creates a Pending Approval
-    WorkflowRequest (request_type='AccessRequest') via the existing
-    Workflow & Approval Management engine. Approve/reject/track it
-    through your existing /workflow endpoints (queue, my, approve,
-    reject) - this endpoint only exists to add the "does this role
-    even exist" validation before handing off.
-    """
+    
     requested_role = data.get("requested_role")
     reason = data.get("reason")
     if not requested_role:

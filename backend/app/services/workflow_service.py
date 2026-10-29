@@ -306,14 +306,7 @@ def _apply_customer_change(db: Session, req: WorkflowRequest, requested: dict):
             setattr(customer, field, requested[field])
 
 def _apply_access_request(db: Session, req: WorkflowRequest, requested: dict):
-    """
-    Applies an approved AccessRequest: changes users.role to the
-    requested role. Runs inside _finalize_approval's try/rollback
-    block exactly like every other _apply_* handler, so if the
-    last-Admin check below fails, the whole approval rolls back and
-    the request stays "Pending Approval" instead of being marked
-    Approved with no actual change applied.
-    """
+   
     from app.models.user import User
     from app.models.role import Role
     from app.models.user_role_history import UserRoleHistory
@@ -358,13 +351,7 @@ def _apply_access_request(db: Session, req: WorkflowRequest, requested: dict):
 
 
 def _apply_inventory_import(db: Session, req: WorkflowRequest, requested: dict):
-    """
-    HONEST ARCHITECTURE NOTE: the uploaded CSV is staged to local disk
-    (same single-server limitation documented for Task 17's threading) and
-    read back here on approval, then handed to the existing start_import()
-    pipeline from Task 12/17 - so approval reuses the same validated,
-    audited, notification-integrated import path rather than duplicating it.
-    """
+   
     if not req.staged_file_path or not os.path.exists(req.staged_file_path):
         raise ValueError("Staged import file is missing or was already processed.")
 
@@ -410,13 +397,7 @@ def _apply_change(db: Session, req: WorkflowRequest):
 
 
 def _finalize_approval(db: Session, req: WorkflowRequest, approver_id: int, approver_name: str, comment: str = None):
-    """
-    TRANSACTION SAFETY: the status flips to Approved only AFTER the
-    underlying business change has been applied without error. If
-    _apply_change raises, we roll back and the request stays Pending
-    Approval - this avoids the exact failure mode the spec calls out:
-    "approval marked successful but the underlying change was not applied."
-    """
+    
     try:
         db.refresh(req)
         if req.status != "Pending Approval":

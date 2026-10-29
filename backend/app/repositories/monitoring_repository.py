@@ -217,9 +217,7 @@ def make_fingerprint(category: str, component: str, message: str) -> str:
 def record_error(db: Session, category: str, component: str, message: str,
                   severity: str = "Medium", endpoint_or_job: Optional[str] = None,
                   company_id: Optional[int] = None) -> SystemError:
-    """Upsert by fingerprint: increments occurrence_count if the same error
-    (category+component+message) was already seen, rather than creating a
-    flood of duplicate rows."""
+    
     fp = make_fingerprint(category, component, message)
     existing = db.query(SystemError).filter(SystemError.fingerprint == fp).first()
     if existing:

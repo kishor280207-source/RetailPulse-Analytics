@@ -19,13 +19,7 @@ def _get_user_or_404(db: Session, company_id: int, user_id: int) -> User:
 
 def assign_role_direct(db: Session, company_id: int, actor_id: int, actor_name: str,
                         target_user_id: int, new_role: str, reason: str):
-    """
-    Direct (immediate, no-approval) role assignment - this is the
-    Admin-only path from the User Access Assignment page. The
-    Access Request workflow (governance_service.create_access_request
-    below) is the separate, approval-gated path a non-admin uses to
-    ask for a role change.
-    """
+   
     target = _get_user_or_404(db, company_id, target_user_id)
 
     role_row = db.query(Role).filter(Role.company_id == company_id, Role.role_name == new_role, Role.is_active == True).first()
@@ -74,16 +68,7 @@ def assign_role_direct(db: Session, company_id: int, actor_id: int, actor_name: 
 
 
 def create_access_request(db: Session, company_id: int, user_id: int, user_name: str, requested_role: str, reason: str, priority: str = "Medium"):
-    """
-    This is the self-service path: a non-admin user requests a role
-    change for THEMSELVES. It rides entirely on the existing Workflow
-    & Approval Management engine (create_and_submit_request) - no
-    separate approval table or admin inbox is created. The actual
-    role change only happens if/when an Admin approves it, via the
-    _apply_access_request handler patched into workflow_service.py
-    (see governance_workflow_patch.md). Submitting this never grants
-    access by itself.
-    """
+    
     role_row = db.query(Role).filter(Role.company_id == company_id, Role.role_name == requested_role, Role.is_active == True).first()
     if not role_row:
         raise HTTPException(status_code=400, detail=f"Role '{requested_role}' does not exist or is inactive.")

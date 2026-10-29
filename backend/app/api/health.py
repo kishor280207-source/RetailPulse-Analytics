@@ -13,9 +13,7 @@ router = APIRouter()
 
 @router.get("/health")
 def public_health_check(db: Session = Depends(get_db)):
-    """Unauthenticated, minimal health-check endpoint for uptime monitors /
-    load balancers. Returns only status + component names — never credentials,
-    connection strings, or stack traces."""
+    
     components = {}
     overall = "Healthy"
 

@@ -57,21 +57,7 @@ def has_permission(db: Session, company_id: int, role: str, module: str, action:
 
 
 def require_permission(module: str, action: str):
-    """
-    Use as a route dependency, e.g.:
-
-        @router.post("/roles")
-        def create_role(
-            data: dict,
-            current_user: dict = Depends(require_permission("DataGovernance", "manage_access")),
-            db: Session = Depends(get_db),
-        ):
-            ...
-
-    Returns the current_user dict (same shape as get_current_user) on
-    success, so routes can use it exactly like Depends(get_current_user)
-    while also getting the permission check for free.
-    """
+   
     if action not in VALID_ACTIONS:
         raise ValueError(f"Unknown permission action '{action}'. Valid actions: {sorted(VALID_ACTIONS)}")
 

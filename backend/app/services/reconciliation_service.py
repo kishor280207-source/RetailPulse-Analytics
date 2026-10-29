@@ -10,11 +10,7 @@ from app.services.reconciliation_checks import ALL_CHECKS
 from app.utils.monitoring_job_tracker import JobTracker
 
 def _record_issue_if_new(db: Session, company_id: int, run_id: int, issue_data: dict):
-    """
-    Shared by both the full reconciliation run and the lightweight
-    per-event checks below - creates a new issue only if no unresolved
-    issue with the same dedup_key already exists.
-    """
+   
     existing = (
         db.query(DataQualityIssue)
         .filter(
