@@ -6,6 +6,9 @@ from app.database.database import get_db
 from app.schemas.login import LoginRequest
 from app.services.auth_service import authenticate_user
 from app.utils.jwt import create_access_token, create_refresh_token
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.utils.jwt import verify_token
+from app.models.user import User
 
 router = APIRouter()
 
@@ -54,3 +57,39 @@ def login(
             "role": user.role
         }
     }
+
+
+security = HTTPBearer()
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    token = credentials.credentials
+
+    payload = verify_token(token)
+
+    if not payload:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    user_id = payload.get("user_id")
+    company_id = payload.get("company_id")
+    role = payload.get("role")
+
+    if not user_id or not role:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token payload"
+        )
+
+    return {
+        "user_id": user_id,
+        "company_id": company_id,
+        "role": role,
+        "email": payload.get("sub")
+    }
+

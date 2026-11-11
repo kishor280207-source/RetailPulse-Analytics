@@ -42,6 +42,17 @@ from app.api.data_quality import router as data_quality_router
 from app.api.workflow import router as workflow_router
 from app.api import monitoring, health
 from app.api import governance
+from app.models.customer import Customer
+from app.models.customer_purchase_summary import CustomerPurchaseSummary
+from app.models.integration import (
+    Integration,
+    IntegrationSync,
+    IntegrationFailedRecord,
+    IntegrationSchedule,
+    IntegrationCheckpoint
+)
+from app.api.integrations import router as integrations_router
+from app.api.integration_retry import router as integration_retry_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -174,6 +185,16 @@ app.include_router(
 app.include_router(health.router)       
 app.include_router(monitoring.router, prefix="/monitoring")
 app.include_router(governance.router, prefix="/governance")
+app.include_router(
+    integrations_router,
+    prefix="/integrations",
+    tags=["Integrations"]
+)
+app.include_router(
+    integration_retry_router,
+    prefix="/integration-retries",
+    tags=["Integration Retries"]
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

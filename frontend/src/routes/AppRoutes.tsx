@@ -44,7 +44,10 @@ import UserAccessAssignment from "../pages/Governance/UserAccessAssignment";
 import AccessRequests from "../pages/Governance/AccessRequests";
 import AccessReview from "../pages/Governance/AccessReview";
 import PermissionHistory from "../pages/Governance/PermissionHistory";
-
+import Integrations from "../pages/Integration/Integrations.tsx";
+import IntegrationConfigure from "../pages/Integration/IntegrationConfigure";
+import IntegrationMapping from "../pages/Integration/IntegrationMapping";
+import IntegrationHistory from "../pages/Integration/IntegrationHistory";
 export default function AppRoutes() {
     return (
          
@@ -149,6 +152,10 @@ export default function AppRoutes() {
                     <Route path="/governance/access-requests" element={<AccessRequests />} />
                     <Route path="/governance/access-review" element={<AccessReview />} />
                     <Route path="/governance/history" element={<PermissionHistory />} />
+                    <Route path="/integrations" element={<Integrations />} />
+                    <Route path="/integrations/configure" element={<IntegrationConfigure />}/>
+                    <Route path="/integrations/mapping" element={<IntegrationMapping />}/>
+                    <Route path="/integrations/history" element={<IntegrationHistory />}/>
                 </Route>
 
             </Routes>
